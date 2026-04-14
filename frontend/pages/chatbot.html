@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Digital Companion — MindBridge</title>
+    <link rel="stylesheet" href="../css/style.css">
+    <style>
+        .chat-layout { 
+            display: grid; 
+            grid-template-columns: 320px 1fr; 
+            gap: 24px; 
+            height: calc(100vh - 180px);
+            min-height: 500px;
+        }
+        @media (max-width: 1000px) { .chat-layout { grid-template-columns: 1fr; height: auto; } }
+
+        .chat-sidebar { 
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .chat-window { 
+            display: flex; 
+            flex-direction: column; 
+            background: var(--white); 
+            border: 1px solid var(--border);
+            border-radius: var(--r-xl); 
+            overflow: hidden; 
+            box-shadow: var(--shadow-sm);
+        }
+
+        .chat-body { 
+            flex: 1; 
+            padding: 24px; 
+            overflow-y: auto; 
+            background: var(--cream); 
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .chat-msg { display: flex; flex-direction: column; max-width: 80%; }
+        .chat-msg.user { align-self: flex-end; align-items: flex-end; }
+        .chat-msg.bot { align-self: flex-start; align-items: flex-start; }
+
+        .chat-bubble { 
+            padding: 12px 18px; 
+            border-radius: 18px; 
+            font-size: 0.92rem; 
+            line-height: 1.5;
+            position: relative;
+        }
+        .chat-msg.user .chat-bubble { background: var(--ink); color: var(--white); border-bottom-right-radius: 4px; }
+        .chat-msg.bot .chat-bubble { background: var(--white); color: var(--text-primary); border-bottom-left-radius: 4px; border: 1px solid var(--border); }
+
+        .chat-time { font-size: 0.68rem; color: var(--text-muted); margin-top: 5px; }
+
+        .chat-footer { padding: 20px; background: var(--white); border-top: 1px solid var(--border); }
+        .chat-input-row { 
+            display: flex; gap: 12px; align-items: center; 
+            background: var(--cream-2); padding: 8px 8px 8px 20px; border-radius: var(--r-full);
+            border: 1.5px solid var(--border);
+        }
+        .chat-input-row:focus-within { border-color: var(--sage); background: var(--white); }
+        .chat-input { flex: 1; background: transparent; border: none; outline: none; font-family: var(--font-ui); font-size: 0.92rem; }
+
+        .quick-box { background: var(--white); border: 1px solid var(--border); border-radius: var(--r-lg); padding: 20px; }
+        .quick-title { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.1em; font-weight: 700; color: var(--text-muted); margin-bottom: 12px; }
+        .quick-btn { 
+            width: 100%; text-align: left; padding: 10px 14px; margin-bottom: 8px; 
+            background: var(--cream-2); border: 1px solid transparent; border-radius: var(--r-md);
+            font-family: var(--font-ui); font-size: 0.85rem; cursor: pointer; transition: var(--t-fast);
+        }
+        .quick-btn:hover { background: var(--white); border-color: var(--sage-light); color: var(--sage); transform: translateX(5px); }
+    </style>
+</head>
+<body>
+    <div class="app-shell">
+        <aside class="sidebar" id="app-sidebar"></aside>
+        
+        <div class="main-content">
+            <header class="topbar"></header>
+            
+            <main class="page-body">
+                <div class="page-header animate-in">
+                    <div>
+                        <h2 class="page-title">Digital Companion</h2>
+                        <div class="section-sub">Your AI support assistant, available 24/7</div>
+                    </div>
+                    <div class="page-actions">
+                        <div class="date-display" id="topbar-date">Sat, 28 Mar</div>
+                    </div>
+                </div>
+
+                <div class="chat-layout animate-in delay-1">
+                    <div class="chat-sidebar">
+                        <div class="quick-box">
+                            <div class="quick-title">Confidential Support</div>
+                            <p style="font-size: 0.85rem; color: var(--text-secondary); line-height: 1.5;">This AI provides information and support. It is not a replacement for professional clinical care.</p>
+                        </div>
+                        <div class="quick-box">
+                            <div class="quick-title">Quick Topics</div>
+                            <button class="quick-btn" onclick="quickAsk('I feel stressed about exams')">Exam Stress</button>
+                            <button class="quick-btn" onclick="quickAsk('I am having trouble sleeping')">Sleep Issues</button>
+                            <button class="quick-btn" onclick="quickAsk('How to manage anxiety?')">Managing Anxiety</button>
+                            <button class="quick-btn" onclick="quickAsk('I feel lonely lately')">Feeling Isolated</button>
+                        </div>
+                        <div style="display: flex; gap: 10px;">
+                            <button class="btn btn-ghost btn-sm btn-full" onclick="clearChat()">Clear History</button>
+                        </div>
+                    </div>
+
+                    <div class="chat-window">
+                        <div class="chat-body" id="chat-box">
+                            <div class="chat-msg bot">
+                                <div class="chat-bubble">Hello! I'm your MindBridge companion. How are you feeling today?</div>
+                                <div class="chat-time">Just now</div>
+                            </div>
+                        </div>
+                        <div id="typing" style="display:none; padding: 10px 24px; font-size: 0.8rem; color: var(--text-muted);">AI is typing...</div>
+                        <div class="chat-footer">
+                            <div class="chat-input-row">
+                                <input type="text" class="chat-input" id="chat-input" placeholder="Type a message..." onkeypress="handleKey(event)">
+                                <button class="btn btn-primary btn-sm" style="border-radius: 999px; width: 36px; height: 36px; padding: 0;" onclick="sendMsg()">
+                                    <span>↑</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <script src="../js/api.js"></script>
+    <script>
+        const user = requireAuth(['student']);
+        if (user) renderSidebar('chatbot');
+
+        const box = document.getElementById('chat-box');
+        const input = document.getElementById('chat-input');
+        const typing = document.getElementById('typing');
+
+        function handleKey(e) { if (e.key === 'Enter') sendMsg(); }
+        function quickAsk(txt) { input.value = txt; sendMsg(); }
+
+        async function sendMsg() {
+            const txt = input.value.trim();
+            if (!txt) return;
+            input.value = '';
+            
+            addMsg('user', txt);
+            typing.style.display = 'block';
+            box.scrollTop = box.scrollHeight;
+
+            try {
+                const res = await apiFetch('/chat', {
+                    method: 'POST',
+                    body: JSON.stringify({ message: txt, student_id: user.id })
+                });
+                typing.style.display = 'none';
+                addMsg('bot', res.reply || res.message || "I'm here to help.");
+            } catch (err) {
+                typing.style.display = 'none';
+                addMsg('bot', "I'm having trouble connecting. Please try again later.");
+            }
+        }
+
+        function addMsg(sender, text) {
+            const div = document.createElement('div');
+            div.className = `chat-msg ${sender} animate-in`;
+            div.innerHTML = `
+                <div class="chat-bubble">${text}</div>
+                <div class="chat-time">${new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</div>
+            `;
+            box.appendChild(div);
+            box.scrollTop = box.scrollHeight;
+        }
+
+        async function loadHistory() {
+            try {
+                const res = await apiFetch(`/chat/history/${user.id}`);
+                if (res.data && res.data.length > 0) {
+                    box.innerHTML = '';
+                    res.data.forEach(m => addMsg(m.sender === 'bot' ? 'bot' : 'user', m.message));
+                }
+            } catch (err) { console.error('History load failed'); }
+        }
+
+        async function clearChat() {
+            if (confirm('Clear your chat history?')) {
+                try {
+                    await apiFetch(`/chat/clear/${user.id}`, { method: 'DELETE' });
+                    box.innerHTML = '<div class="chat-msg bot"><div class="chat-bubble">History cleared. How can I help you now?</div></div>';
+                } catch (err) { showToast('Failed to clear'); }
+            }
+        }
+
+        loadHistory();
+    </script>
+</body>
+</html>

@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Resources — MindBridge</title>
+    <link rel="stylesheet" href="../css/style.css">
+    <style>
+        .filter-row { 
+            display: flex; 
+            gap: 10px; 
+            flex-wrap: wrap; 
+            margin-bottom: 30px; 
+        }
+        .filter-chip {
+            padding: 8px 18px; 
+            border: 1.5px solid var(--border); 
+            border-radius: var(--r-full);
+            background: var(--white); 
+            font-family: var(--font-view); 
+            font-size: 0.85rem; 
+            font-weight: 500;
+            color: var(--text-secondary); 
+            cursor: pointer; 
+            transition: var(--t-fast);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .filter-chip:hover { 
+            border-color: var(--sage-3); 
+            color: var(--sage); 
+            transform: translateY(-1px);
+            box-shadow: var(--shadow-sm);
+        }
+        .filter-chip.active { 
+            border-color: var(--sage); 
+            background: rgba(94,158,141,0.08); 
+            color: var(--sage); 
+            font-weight: 600;
+        }
+    </style>
+</head>
+<body>
+    <div class="app-shell">
+        <aside class="sidebar" id="app-sidebar"></aside>
+        
+        <div class="main-content">
+            <header class="topbar"></header>
+            
+            <main class="page-body">
+                <div class="page-header animate-in">
+                    <div>
+                        <h2 class="page-title">Resources</h2>
+                        <div class="section-sub">Curated library for your mental wellbeing</div>
+                    </div>
+                    <div class="page-actions">
+                        <div class="date-display" id="topbar-date">Sat, 28 Mar</div>
+                    </div>
+                </div>
+
+                <div class="animate-in delay-1">
+                    <div style="margin-bottom: 24px;">
+                        <div class="section-title">Wellness Library</div>
+                        <p class="section-sub">Articles, videos, and tools to support your journey.</p>
+                    </div>
+
+                    <div class="filter-row">
+                        <button class="filter-chip active" onclick="filterResources('all', this)"><span>🗂</span> All</button>
+                        <button class="filter-chip" onclick="filterResources('Article', this)"><span>📰</span> Articles</button>
+                        <button class="filter-chip" onclick="filterResources('Video', this)"><span>🎥</span> Videos</button>
+                        <button class="filter-chip" onclick="filterResources('Worksheet', this)"><span>📝</span> Worksheets</button>
+                        <button class="filter-chip" onclick="filterResources('Resource', this)"><span>📞</span> Support Lines</button>
+                        <button class="filter-chip" onclick="filterResources('Community', this)"><span>👥</span> Community</button>
+                    </div>
+
+                    <div id="resources-grid" class="grid-auto">
+                        <div class="loading-wrap" style="grid-column: 1 / -1;">
+                            <div class="spinner"></div>
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <script src="../js/api.js"></script>
+    <script>
+        const user = requireAuth(['student', 'counselor', 'admin']);
+        if (user) renderSidebar('resources');
+
+        const typeIcons = { Article:'📰', Video:'🎥', Worksheet:'📝', Resource:'📞', Community:'👥' };
+        let allRes = [];
+
+        async function loadResources() {
+            try {
+                const res = await apiFetch('/resources');
+                allRes = res.data;
+                renderResources(allRes);
+            } catch (err) {
+                document.getElementById('resources-grid').innerHTML = `
+                    <div class="alert alert-error" style="grid-column: 1 / -1;">
+                        ⚠ ${err.message}
+                    </div>`;
+            }
+        }
+
+        function renderResources(list) {
+            const grid = document.getElementById('resources-grid');
+            if (!list || !list.length) {
+                grid.innerHTML = `
+                    <div class="empty-state" style="grid-column: 1 / -1;">
+                        <span class="empty-icon">📚</span>
+                        <div class="empty-title">No resources found</div>
+                        <div class="empty-desc">Check back later for new content.</div>
+                    </div>`;
+                return;
+            }
+            grid.innerHTML = list.map((r, index) => `
+                <div class="resource-card animate-in" style="animation-delay: ${0.1 + (index % 6) * 0.05}s">
+                    <div class="resource-card-icon">${typeIcons[r.type] || '📄'}</div>
+                    <div class="resource-type">${r.type}</div>
+                    <div class="resource-title">${r.title}</div>
+                    <div class="resource-desc">${r.description || 'No description available.'}</div>
+                    ${r.link ? `<div style="margin-top: 16px; padding-top: 16px; border-top: 1px solid var(--border);">
+                        <a href="${r.link}" target="_blank" class="btn btn-ghost btn-sm">Open Resource →</a>
+                    </div>` : ''}
+                </div>`).join('');
+        }
+
+        function filterResources(type, btn) {
+            document.querySelectorAll('.filter-chip').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            renderResources(type === 'all' ? allRes : allRes.filter(r => r.type === type));
+        }
+
+        loadResources();
+    </script>
+</body>
+</html>

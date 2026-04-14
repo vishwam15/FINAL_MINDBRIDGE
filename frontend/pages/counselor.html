@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Counselor Hub — MindBridge</title>
+    <link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+    <div class="app-shell">
+        <aside class="sidebar" id="app-sidebar"></aside>
+        
+        <div class="main-content">
+            <header class="topbar"></header>
+            
+            <main class="page-body">
+                <div class="page-header animate-in">
+                    <div>
+                        <h2 class="page-title">Counselor Hub</h2>
+                        <div class="section-sub">Manage your student sessions and wellbeing tracking</div>
+                    </div>
+                    <div class="page-actions">
+                        <select class="action-select" id="status-filter" onchange="filterTable()">
+                            <option value="all">All Statuses</option>
+                            <option value="pending">Pending</option>
+                            <option value="confirmed">Confirmed</option>
+                            <option value="completed">Completed</option>
+                            <option value="cancelled">Cancelled</option>
+                        </select>
+                        <div class="date-display" id="topbar-date">Sat, 28 Mar</div>
+                    </div>
+                </div>
+
+                <div class="stats-strip animate-in delay-1">
+                    <div class="stat-tile c-sage">
+                        <div class="stat-icon-wrap">📅</div>
+                        <div class="stat-value" id="s-total">—</div>
+                        <div class="stat-label">Total Appointments</div>
+                    </div>
+                    <div class="stat-tile c-gold">
+                        <div class="stat-icon-wrap">⏳</div>
+                        <div class="stat-value" id="s-pending">—</div>
+                        <div class="stat-label">Awaiting Approval</div>
+                    </div>
+                    <div class="stat-tile c-sky">
+                        <div class="stat-icon-wrap">✅</div>
+                        <div class="stat-value" id="s-confirmed">—</div>
+                        <div class="stat-label">Upcoming Sessions</div>
+                    </div>
+                    <div class="stat-tile c-rust">
+                        <div class="stat-icon-wrap">🎓</div>
+                        <div class="stat-value" id="s-completed">—</div>
+                        <div class="stat-label">Completed</div>
+                    </div>
+                </div>
+
+                <div class="section-header animate-in delay-2">
+                    <div>
+                        <div class="section-title">Daily Schedule</div>
+                        <div class="section-sub">Overview of your upcoming student engagements</div>
+                    </div>
+                </div>
+
+                <div id="appt-table-area" class="animate-in delay-2">
+                    <div class="loading-wrap"><div class="spinner"></div></div>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <!-- Update Status Modal -->
+    <div class="modal-overlay" id="status-modal">
+        <div class="modal" style="max-width: 450px;">
+            <div class="modal-header">
+                <div class="modal-title">Update Appointment</div>
+                <button class="modal-close" onclick="closeModal()">✕</button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="edit-id" />
+                <div class="form-group">
+                    <label class="form-label">Update Status</label>
+                    <select class="form-input" id="edit-status">
+                        <option value="pending">Pending</option>
+                        <option value="confirmed">Confirmed</option>
+                        <option value="completed">Completed</option>
+                        <option value="cancelled">Cancelled</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Counselor Note (Student can see this)</label>
+                    <textarea class="form-input" id="edit-note" rows="3" placeholder="Add a confirmation note or feedback..."></textarea>
+                </div>
+                <div style="margin-top: 20px; display: flex; gap: 10px;">
+                    <button class="btn btn-primary btn-full" onclick="updateAppointment()">Save Changes</button>
+                    <button class="btn btn-ghost" onclick="closeModal()">Cancel</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="../js/api.js"></script>
+    <script>
+        const user = requireAuth(['counselor']);
+        if (user) renderSidebar('counselor');
+
+        let allAppointments = [];
+
+        async function loadData() {
+            try {
+                const res = await apiFetch(`/appointments/counselor/${user.id}`);
+                allAppointments = res.data || [];
+                
+                document.getElementById('s-total').textContent = allAppointments.length;
+                document.getElementById('s-pending').textContent = allAppointments.filter(a => a.status === 'pending').length;
+                document.getElementById('s-confirmed').textContent = allAppointments.filter(a => a.status === 'confirmed').length;
+                document.getElementById('s-completed').textContent = allAppointments.filter(a => a.status === 'completed').length;
+
+                filterTable();
+            } catch (err) { 
+                showToast(err.message, 'error'); 
+            }
+        }
+
+        function filterTable() {
+            const status = document.getElementById('status-filter').value;
+            const filtered = status === 'all' ? allAppointments : allAppointments.filter(a => a.status === status);
+            renderTable(filtered);
+        }
+
+        function renderTable(data) {
+            const el = document.getElementById('appt-table-area');
+            if (!data || !data.length) {
+                el.innerHTML = `<div class="empty-state"><span class="empty-icon">📅</span><div class="empty-title">No appointments found</div><div class="empty-desc">There are no sessions matching your current filter.</div></div>`;
+                return;
+            }
+            el.innerHTML = `<div class="table-container"><table>
+                <thead><tr><th>Student</th><th>Date & Time</th><th>Mode</th><th>Status</th><th>Note</th><th style="text-align:right">Actions</th></tr></thead>
+                <tbody>${data.map(a => `
+                    <tr>
+                        <td>
+                            <div class="cell-primary">${a.student_name}</div>
+                            <div class="cell-sub">${a.student_email || 'No email provided'}</div>
+                        </td>
+                        <td>
+                            <div class="cell-primary">${formatDate(a.date)}</div>
+                            <div class="cell-sub">${a.time?.slice(0, 5) || '—'}</div>
+                        </td>
+                        <td><span class="badge badge-low" style="background:var(--cream-2); color:var(--text-secondary); border:1px solid var(--border);">${a.mode || 'Online'}</span></td>
+                        <td>${statusBadge(a.status)}</td>
+                        <td style="max-width: 250px;"><div class="cell-sub">${a.counselor_note || '—'}</div></td>
+                        <td style="text-align:right">
+                            <button class="btn btn-ghost btn-sm" data-id="${a.appointment_id}" data-status="${a.status}" data-note="${encodeURIComponent(a.counselor_note || '')}" onclick="openEditModal(this)">Edit</button>
+                        </td>
+                    </tr>`).join('')}
+                </tbody></table></div>`;
+        }
+
+        function openEditModal(button) {
+            const id = button.dataset.id;
+            const status = button.dataset.status;
+            const note = decodeURIComponent(button.dataset.note || '');
+            document.getElementById('edit-id').value = id;
+            document.getElementById('edit-status').value = status;
+            document.getElementById('edit-note').value = note;
+            document.getElementById('status-modal').classList.add('open');
+        }
+
+        function closeModal() {
+            document.getElementById('status-modal').classList.remove('open');
+        }
+
+        async function updateAppointment() {
+            const id = document.getElementById('edit-id').value;
+            const status = document.getElementById('edit-status').value;
+            const note = document.getElementById('edit-note').value.trim();
+            try {
+                await apiFetch(`/appointments/${id}/status`, {
+                    method: 'PUT',
+                    body: JSON.stringify({ status, counselor_note: note })
+                });
+                showToast('Appointment updated successfully', 'success');
+                closeModal();
+                loadData();
+            } catch (err) { 
+                showToast(err.message, 'error'); 
+            }
+        }
+
+        loadData();
+    </script>
+</body>
+</html>

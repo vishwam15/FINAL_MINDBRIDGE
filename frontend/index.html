@@ -1,0 +1,544 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Welcome — MindBridge Mental Health System</title>
+  <link rel="stylesheet" href="css/style.css" />
+  <link rel="stylesheet" href="css/chatbot.css" />
+  <style>
+    /* ── Landing Page Specific Styles ── */
+    :root {
+      --hero-bg: #081617;
+      --hero-gradient: radial-gradient(circle at 15% 15%, rgba(125,255,138,0.22), transparent 20%), radial-gradient(circle at 85% 10%, rgba(82,255,148,0.18), transparent 18%), radial-gradient(circle at 20% 80%, rgba(98,255,136,0.14), transparent 24%), radial-gradient(circle at 80% 85%, rgba(44,255,132,0.12), transparent 22%);
+      --glass: rgba(255, 255, 255, 0.04);
+      --glass-border: rgba(255, 255, 255, 0.12);
+    }
+    
+    body { background: var(--bg-body); background-image: radial-gradient(circle at top right, rgba(125,255,138,0.06), transparent 18%), radial-gradient(circle at bottom left, rgba(125,255,138,0.04), transparent 18%); overflow-x: hidden; }
+    
+    .landing-nav {
+      position: fixed; top: 0; left: 0; right: 0; height: 90px;
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 0 8%; z-index: 100;
+      background: rgba(7, 20, 16, 0.82); backdrop-filter: blur(24px);
+      border-bottom: 1px solid rgba(125,255,138,0.12);
+      transition: all 0.3s ease;
+    }
+    .landing-nav.scrolled { height: 70px; background: rgba(7, 20, 16, 0.94); box-shadow: 0 14px 40px rgba(0,0,0,0.16); }
+
+    .brand-group { display: flex; align-items: center; gap: 12px; }
+    .brand-text { font-family: var(--font-display); font-size: 1.7rem; color: var(--neon); letter-spacing: -0.03em; font-weight: 700; text-shadow: 0 0 18px rgba(125,255,138,0.32); }
+    
+    .nav-actions { display: flex; gap: 16px; align-items: center; }
+    
+    .landing-hero {
+      min-height: 100vh;
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      text-align: center; padding: 140px 8% 80px;
+      position: relative; overflow: hidden;
+      background: radial-gradient(circle at 16% 18%, rgba(74,255,160,0.18), transparent 18%),
+                  radial-gradient(circle at 86% 12%, rgba(125,255,138,0.16), transparent 20%),
+                  linear-gradient(180deg, rgba(8,19,21,0.98) 0%, rgba(5,10,13,1) 100%);
+      color: #f8fff3;
+      cursor: none;
+    }
+    .landing-hero a,
+    .landing-hero button { cursor: pointer; }
+
+    /* Mesh Gradient Hero Background */
+    .hero-mesh {
+      position: absolute; inset: 0; z-index: 1;
+      background: 
+        radial-gradient(circle at 12% 12%, rgba(125,255,138,0.34) 0, transparent 22%),
+        radial-gradient(circle at 88% 8%, rgba(86,255,150,0.28) 0, transparent 20%),
+        radial-gradient(circle at 70% 85%, rgba(81,255,150,0.22) 0, transparent 20%),
+        radial-gradient(circle at 18% 78%, rgba(104,255,142,0.16) 0, transparent 18%),
+        linear-gradient(135deg, rgba(16,34,30,0.86), rgba(8,19,22,0.7));
+      filter: blur(4px);
+      opacity: 0.96;
+      animation: drift 16s ease-in-out infinite alternate;
+    }
+
+    .hero-mesh::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(circle at 50% 20%, rgba(255,255,255,0.08), transparent 20%),
+                  radial-gradient(circle at 30% 80%, rgba(125,255,138,0.08), transparent 18%);
+      mix-blend-mode: screen;
+      opacity: 0.65;
+      pointer-events: none;
+    }
+
+    .preloader {
+      position: fixed;
+      inset: 0;
+      z-index: 9999;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+      gap: 18px;
+      background: rgba(6, 16, 14, 0.95);
+      color: #e8ffe5;
+      font-family: var(--font-display);
+      text-transform: uppercase;
+      letter-spacing: 0.25em;
+      font-size: 0.9rem;
+      opacity: 1;
+      transition: opacity 0.5s ease;
+    }
+    .preloader.loaded { opacity: 0; pointer-events: none; }
+    .preloader-ring {
+      width: 82px;
+      height: 82px;
+      border-radius: 50%;
+      position: relative;
+      border: 4px solid rgba(125,255,138,0.18);
+      box-shadow: 0 0 34px rgba(125,255,138,0.18);
+      animation: preloaderSpin 1.8s linear infinite;
+    }
+    .preloader-ring::before {
+      content: '';
+      position: absolute;
+      inset: 14px;
+      border-radius: 50%;
+      background: rgba(125,255,138,0.12);
+      box-shadow: 0 0 24px rgba(125,255,138,0.14);
+    }
+    @keyframes preloaderSpin {
+      to { transform: rotate(360deg); }
+    }
+    .preloader p { opacity: 0.85; }
+
+    .hero-cursor-glow {
+      position: absolute;
+      top: 0; left: 0;
+      width: 380px; height: 380px;
+      border-radius: 50%;
+      pointer-events: none;
+      z-index: 1.5;
+      background:
+        radial-gradient(circle at 50% 52%, rgba(111,255,195,0.72) 0%, rgba(111,255,195,0.3) 18%, rgba(255,255,255,0.24) 26%, transparent 54%),
+        radial-gradient(circle at 18% 20%, rgba(255,255,255,0.75) 0%, transparent 16%),
+        radial-gradient(circle at 74% 70%, rgba(125,255,138,0.34) 0%, transparent 28%);
+      box-shadow: 0 0 180px rgba(111,255,195,0.38), inset 0 0 28px rgba(255,255,255,0.22);
+      transform: translate3d(-50%, -50%, 0) scale(0.94);
+      opacity: 0;
+      transition: opacity 0.16s ease-out, transform 0.14s ease-out;
+      filter: blur(0.8px);
+      mix-blend-mode: screen;
+      will-change: transform, opacity, left, top;
+      animation: rotateGlow 18s linear infinite, pulseFloat 4.4s ease-in-out infinite alternate;
+    }
+
+    @keyframes rotateGlow {
+      from { transform: translate3d(-50%, -50%, 0) scale(0.94) rotate(0deg); }
+      to { transform: translate3d(-50%, -50%, 0) scale(0.94) rotate(360deg); }
+    }
+
+    @keyframes pulseFloat {
+      0%, 100% { transform: translate3d(-50%, -50%, 0) scale(0.94); }
+      50% { transform: translate3d(-50%, -50%, 0) scale(1.08); }
+    }
+
+    @keyframes textFloat {
+      from { transform: translateY(0); }
+      to { transform: translateY(-12px); }
+    }
+
+    @keyframes glowPulse {
+      0%, 100% { box-shadow: 0 0 32px rgba(111,255,195,0.24), inset 0 0 12px rgba(111,255,195,0.16); }
+      50% { box-shadow: 0 0 80px rgba(111,255,195,0.42), inset 0 0 26px rgba(255,255,255,0.3); }
+    }
+
+    .btn-neon {
+      animation: glowPulse 2.4s ease-in-out infinite alternate;
+      background: linear-gradient(135deg, rgba(124,255,163,0.98), rgba(20,87,63,0.96));
+      color: #fff;
+      text-shadow: 0 0 24px rgba(255,255,255,0.45);
+      box-shadow: 0 26px 82px rgba(111,255,195,0.38), inset 0 0 20px rgba(255,255,255,0.24);
+    }
+
+    .hero-cursor-glow::before,
+    .hero-cursor-glow::after {
+      content: '';
+      position: absolute;
+      border-radius: 50%;
+      pointer-events: none;
+      filter: blur(1.6px);
+    }
+    .hero-cursor-glow::before {
+      width: 220px;
+      height: 220px;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: rgba(125,255,138,0.18);
+      box-shadow: 0 0 90px rgba(125,255,138,0.3);
+    }
+    .hero-cursor-glow::after {
+      width: 86px;
+      height: 86px;
+      top: 30%;
+      left: 58%;
+      transform: translate(-50%, -50%);
+      background: rgba(255,255,255,0.85);
+      box-shadow: 0 0 40px rgba(255,255,255,0.5);
+    }
+
+    .hero-content { position: relative; z-index: 4; display: flex; flex-direction: column; align-items: center; }
+
+    .hero-badge {
+      display: inline-flex; align-items: center; gap: 8px;
+      padding: 10px 22px; border-radius: 999px;
+      background: rgba(111,255,195,0.16); border: 1px solid rgba(111,255,195,0.4);
+      color: #e8ffea; font-size: 0.78rem; font-weight: 700;
+      letter-spacing: 0.12em; text-transform: uppercase; margin-bottom: 32px;
+      box-shadow: 0 0 36px rgba(111,255,195,0.28);
+      animation: pulseGlow 3.4s ease-in-out infinite alternate;
+    }
+    .hero-headline {
+      font-family: var(--font-display); font-size: clamp(2.5rem, 8vw, 4.5rem); font-weight: 300;
+      color: var(--white); line-height: 1.05; letter-spacing: -0.04em;
+      max-width: 1000px; margin-bottom: 24px;
+      text-shadow: 0 0 18px rgba(125,255,138,0.08);
+      animation: textFloat 8s ease-in-out infinite alternate;
+      transform-style: preserve-3d;
+    }
+    .hero-headline em { font-style: italic; color: var(--neon); font-weight: 600; text-shadow: 0 0 36px rgba(125,255,138,0.45); }
+    
+    .hero-sub {
+      font-size: 1.18rem; color: rgba(255,255,255,0.78); max-width: 700px;
+      line-height: 1.75; margin-bottom: 48px; font-weight: 300;
+      animation: fadeUp 1.2s ease both;
+    }
+    .hero-cta { display: flex; gap: 20px; align-items: center; justify-content: center; flex-wrap: wrap; }
+
+    .btn-neon {
+      background: radial-gradient(circle at top left, rgba(111,255,195,0.96), rgba(73,214,162,0.9) 40%, rgba(15,30,25,0.96) 100%);
+      color: #fff;
+      border: 1px solid rgba(111,255,195,0.48);
+      box-shadow: 0 20px 45px rgba(111,255,195,0.24), inset 0 0 6px rgba(255,255,255,0.18);
+      transition: transform 0.25s ease, box-shadow 0.25s ease, filter 0.25s ease;
+      position: relative;
+      z-index: 5;
+    }
+    .btn-neon:hover {
+      transform: translateY(-3px) scale(1.02);
+      box-shadow: 0 28px 70px rgba(111,255,195,0.32), inset 0 0 18px rgba(255,255,255,0.24);
+      filter: saturate(1.15);
+    }
+    .btn-glass {
+      background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); color: white;
+      padding: 16px 32px; border-radius: 50px; font-weight: 600; backdrop-filter: blur(10px);
+      transition: all 0.3s ease; text-decoration: none;
+      box-shadow: 0 0 30px rgba(125,255,138,0.09);
+      position: relative;
+      z-index: 5;
+    }
+    .btn-glass:hover { background: rgba(125,255,138,0.14); border-color: rgba(125,255,138,0.38); }
+
+    /* Features */
+    .features-section { padding: 120px 8%; background: #ffffff; position: relative; }
+    .features-header { text-align: center; margin-bottom: 80px; max-width: 800px; margin-left: auto; margin-right: auto; }
+    .features-title { font-family: var(--font-display); font-size: 3rem; color: var(--ink); margin-bottom: 20px; letter-spacing: -0.03em; }
+    .features-sub { font-size: 1.1rem; color: var(--text-muted); line-height: 1.6; }
+    
+    .features-grid {
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 40px;
+      max-width: 1200px; margin: 0 auto;
+    }
+    .feature-card {
+      background: linear-gradient(180deg, rgba(255,255,255,0.98), #fbfbfd 85%);
+      border: 1px solid rgba(111,255,195,0.16);
+      border-radius: 24px; padding: 48px 40px;
+      text-align: left; transition: transform 0.35s ease, box-shadow 0.35s ease, border-color 0.35s ease;
+      display: flex; flex-direction: column; gap: 20px;
+      transform-style: preserve-3d;
+      box-shadow: 0 18px 40px rgba(0,0,0,0.06);
+    }
+    .feature-card:hover { transform: translateY(-10px) perspective(800px) rotateX(2deg) rotateY(-2deg); box-shadow: 0 30px 90px rgba(111,255,195,0.16); border-color: rgba(111,255,195,0.36); }
+    
+    .feature-icon {
+      width: 72px; height: 72px; border-radius: 22px;
+      background: radial-gradient(circle at top left, rgba(111,255,195,0.25), rgba(255,255,255,0.95));
+      border: 1px solid rgba(111,255,195,0.18);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.8rem; box-shadow: inset 0 0 16px rgba(111,255,195,0.18), 0 10px 24px rgba(0,0,0,0.05);
+      color: #1b3f33;
+    }
+    .feature-title { font-size: 1.4rem; font-weight: 600; color: var(--ink); margin: 0; }
+    .feature-desc { font-size: 1rem; color: var(--text-secondary); line-height: 1.6; margin: 0; }
+
+    /* Testimonials */
+    .testimonials-section { padding: 100px 8%; background: #fdfdfd; }
+    .testimonials-title { font-family: var(--font-display); font-size: 2.8rem; text-align: center; margin-bottom: 60px; letter-spacing: -0.02em; animation: textFloat 10s ease-in-out infinite alternate; }
+    .testimonials-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 32px; max-width: 1200px; margin: 0 auto; }
+    .testimonial-card { 
+      background: linear-gradient(180deg, rgba(255,255,255,0.98), #fbfbfd 95%); border-radius: 24px; padding: 40px; 
+      border: 1px solid rgba(111,255,195,0.14); position: relative;
+      box-shadow: 0 24px 65px rgba(0,0,0,0.08);
+      transition: transform 0.35s ease, box-shadow 0.35s ease;
+    }
+    .testimonial-card:hover { transform: translateY(-6px); box-shadow: 0 34px 90px rgba(111,255,195,0.14); }
+    .testimonial-card::before { content: '“'; position: absolute; top: 20px; left: 20px; font-size: 4rem; color: #f0f0f5; font-family: serif; }
+    .testimonial-text { font-size: 1.05rem; color: var(--text-secondary); line-height: 1.7; margin-bottom: 24px; position: relative; z-index: 1; }
+    .testimonial-author { font-weight: 700; color: var(--ink); display: flex; align-items: center; gap: 10px; }
+    .testimonial-author::before { content: ''; display: block; width: 24px; height: 2px; background: var(--sage); }
+
+    .cta-section { padding: 140px 8%; background: linear-gradient(180deg, #0a1b1b 0%, #081112 58%); color: white; text-align: center; position: relative; overflow: hidden; }
+    .cta-title { font-family: var(--font-display); font-size: 3.5rem; margin-bottom: 24px; font-weight: 300; letter-spacing: -0.03em; animation: textFloat 10s ease-in-out infinite alternate; }
+    .cta-sub { font-size: 1.2rem; color: rgba(255,255,255,0.72); margin-bottom: 48px; max-width: 600px; margin-left: auto; margin-right: auto; }
+
+    .btn-glass {
+      background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); color: white;
+      padding: 16px 32px; border-radius: 50px; font-weight: 600; backdrop-filter: blur(10px);
+      transition: all 0.3s ease; text-decoration: none;
+    }
+    .btn-glass:hover { background: rgba(255,255,255,0.2); border-color: rgba(255,255,255,0.4); }
+
+    footer { background: #081112; padding: 60px 8% 40px; text-align: center; color: rgba(255,255,255,0.3); font-size: 0.9rem; border-top: 1px solid rgba(255,255,255,0.05); }
+
+    @media (max-width: 768px) {
+      .landing-nav { padding: 0 5%; height: 70px; }
+      .brand-text { font-size: 1.3rem; }
+      .nav-logo-img { height: 48px !important; }
+      .hero-cta { flex-direction: column; width: 100%; }
+      .btn { width: 100%; text-align: center; }
+      .features-title { font-size: 2.2rem; }
+    }
+  </style>
+</head>
+<body>
+  <div class="preloader" id="preloader">
+    <div class="preloader-ring"></div>
+    <p>Preparing your MindBridge experience...</p>
+  </div>
+
+  <!-- Navigation -->
+  <nav class="landing-nav" id="main-nav">
+    <div class="brand-group">
+      <img src="MindBridgeCanva.png" alt="MindBridge Logo" class="nav-logo-img" style="height:72px;" />
+      <span class="brand-text">MindBridge</span>
+    </div>
+    <div class="nav-actions">
+      <a href="login.html" class="btn btn-ghost" style="font-weight:600;">Log In</a>
+      <a href="register.html" class="btn btn-primary" style="padding: 12px 28px; border-radius: 50px;">Get Started</a>
+    </div>
+  </nav>
+
+  <!-- Hero Section -->
+  <section class="landing-hero">
+    <div class="hero-mesh"></div>
+    <div class="hero-cursor-glow"></div>
+    <div class="hero-content">
+      <div class="hero-badge animate-in">🎓 Elite Student Wellbeing System</div>
+      <h1 class="hero-headline">Support that meets you <em>exactly where you are.</em></h1>
+      <p class="hero-sub">
+        The ultimate digital ecosystem for university mental health. Professional resources, AI-powered support, and seamless crisis tools—all in one place.
+      </p>
+      <div class="hero-cta">
+        <a href="register.html" class="btn btn-neon btn-lg" style="padding: 18px 40px; border-radius: 50px; font-weight: 700; font-size: 1.1rem;">Begin Your Journey</a>
+        <a href="login.html" class="btn btn-glass">Enter Dashboard</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- Features Section -->
+  <section class="features-section">
+    <div class="features-header">
+      <h2 class="features-title">Designed for Your Peace of Mind</h2>
+      <p class="features-sub">We've simplified access to mental health care, removing the barriers between you and the support you deserve.</p>
+    </div>
+
+    <div class="features-grid">
+      <div class="feature-card">
+        <div class="feature-icon">🤖</div>
+        <div class="feature-content">
+          <h3 class="feature-title">24/7 AI Companion</h3>
+          <p class="feature-desc">Immediate, empathetic support powered by advanced AI. Available any hour of the day or night for confidential guidance.</p>
+        </div>
+      </div>
+
+      <div class="feature-card">
+        <div class="feature-icon">📅</div>
+        <div class="feature-content">
+          <h3 class="feature-title">Seamless Bookings</h3>
+          <p class="feature-desc">Schedule online or in-person sessions with professional counselors without the bureaucratic friction.</p>
+        </div>
+      </div>
+
+      <div class="feature-card">
+        <div class="feature-icon">🛡️</div>
+        <div class="feature-content">
+          <h3 class="feature-title">Clinical Security</h3>
+          <p class="feature-desc">Your privacy is our highest priority. All data is encrypted and handled with the strictest clinical confidentiality standards.</p>
+        </div>
+      </div>
+
+      <div class="feature-card">
+        <div class="feature-icon">📊</div>
+        <div class="feature-content">
+          <h3 class="feature-title">Mental Health Audits</h3>
+          <p class="feature-desc">Scientific assessments that help you track your mood and stress levels over time with clear, actionable insights.</p>
+        </div>
+      </div>
+
+      <div class="feature-card">
+        <div class="feature-icon">🚨</div>
+        <div class="feature-content">
+          <h3 class="feature-title">Instant SOS Support</h3>
+          <p class="feature-desc">Direct links to emergency crisis lines and campus security are always just one click away, built-in everywhere.</p>
+        </div>
+      </div>
+
+      <div class="feature-card">
+        <div class="feature-icon">🍃</div>
+        <div class="feature-content">
+          <h3 class="feature-title">Wellness Library</h3>
+          <p class="feature-desc">A curated collection of meditation, articles, and worksheets specifically selected for university challenges.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Testimonials Section -->
+  <section class="testimonials-section">
+    <h2 class="testimonials-title">Real Support. Real Impact.</h2>
+    <div class="testimonials-grid">
+      <div class="testimonial-card">
+        <p class="testimonial-text">"MindBridge made it possible for me to get help when I was too overwhelmed to even call anyone. It truly saved my semester."</p>
+        <div class="testimonial-author">Sarah J., 4th Year</div>
+      </div>
+      <div class="testimonial-card">
+        <p class="testimonial-text">"The dashboard is so clean and easy to use. I love how I can see all my appointments and resources in one professional space."</p>
+        <div class="testimonial-author">Leo K., Graduate Student</div>
+      </div>
+      <div class="testimonial-card">
+        <p class="testimonial-text">"Finally, a system that actually feels modern and supportive. The AI chatbot is surprisingly empathetic and helpful."</p>
+        <div class="testimonial-author">Priya M., 2nd Year</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA Section -->
+  <section class="cta-section">
+    <h2 class="cta-title">Your wellbeing journey starts here.</h2>
+    <p class="cta-sub">Join thousands of students who are taking control of their mental health with MindBridge. Completely free for registered university users.</p>
+    <a href="register.html" class="btn btn-neon btn-lg" style="padding: 20px 50px; border-radius: 50px; font-weight: 700; font-size: 1.2rem;">Create Your Account</a>
+  </section>
+
+  <footer>
+    <div style="margin-bottom: 30px;">
+      <div class="brand-group" style="justify-content: center; opacity: 0.5;">
+        <img src="MindBridgeCanva.png" alt="Logo" style="height:48px; filter: grayscale(1) invert(1);">
+        <span class="brand-text" style="color: white; font-size: 1.2rem;">MindBridge</span>
+      </div>
+    </div>
+    <p>MindBridge Mental Health Ecosystem &copy; 2026. Prioritizing Student Wellbeing Globally.</p>
+    <div style="margin-top: 20px; display: flex; justify-content: center; gap: 20px;">
+      <a href="#" style="color: inherit; text-decoration: none;">Privacy Policy</a>
+      <a href="#" style="color: inherit; text-decoration: none;">Terms of Service</a>
+      <a href="#" style="color: inherit; text-decoration: none;">Contact Support</a>
+    </div>
+  </footer>
+
+  <script>
+    // Navigation Scroll Effect
+    window.addEventListener('scroll', () => {
+      const nav = document.getElementById('main-nav');
+      if (window.scrollY > 50) {
+        nav.classList.add('scrolled');
+      } else {
+        nav.classList.remove('scrolled');
+      }
+    });
+
+    // Simple Animation Observer
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('animate-up');
+        }
+      });
+    }, { threshold: 0.1 });
+
+    document.querySelectorAll('.feature-card, .testimonial-card, .features-header').forEach(el => {
+      el.style.opacity = '0';
+      el.style.transform = 'translateY(20px)';
+      el.style.transition = 'all 0.6s ease';
+      observer.observe(el);
+    });
+
+    const heroGlow = document.querySelector('.hero-cursor-glow');
+    const heroSection = document.querySelector('.landing-hero');
+    const preloader = document.getElementById('preloader');
+    let glowRotate = 0;
+
+    window.addEventListener('load', () => {
+      if (preloader) {
+        preloader.classList.add('loaded');
+        setTimeout(() => {
+          if (preloader.parentNode) preloader.parentNode.removeChild(preloader);
+        }, 520);
+      }
+    });
+
+    if (heroGlow && heroSection) {
+      heroSection.addEventListener('mousemove', (event) => {
+        const rect = heroSection.getBoundingClientRect();
+        const x = event.clientX - rect.left;
+        const y = event.clientY - rect.top;
+        const centerX = rect.width / 2;
+        const centerY = rect.height / 2;
+
+        const offsetX = (x - centerX) * 0.015;
+        const offsetY = (y - centerY) * 0.015;
+        const speed = Math.min(0.32, (Math.abs(event.movementX) + Math.abs(event.movementY)) / 130);
+
+        glowRotate += 2.6;
+        heroGlow.style.left = `${x}px`;
+        heroGlow.style.top = `${y}px`;
+        heroGlow.style.opacity = '1';
+        heroGlow.style.transform = `translate3d(-50%, -50%, 0) scale(${1.03 + speed}) rotate(${glowRotate}deg) translate3d(${offsetX}px, ${offsetY}px, 0)`;
+      });
+
+      heroSection.addEventListener('mouseleave', () => {
+        heroGlow.style.opacity = '0';
+      });
+    }
+
+    document.querySelectorAll('.feature-card').forEach(card => {
+      card.style.transformStyle = 'preserve-3d';
+      card.style.transition = 'transform 0.25s ease, box-shadow 0.25s ease';
+
+      card.addEventListener('mousemove', (event) => {
+        const rect = card.getBoundingClientRect();
+        const px = (event.clientX - rect.left) / rect.width;
+        const py = (event.clientY - rect.top) / rect.height;
+        const tiltX = (py - 0.5) * 12;
+        const tiltY = (px - 0.5) * 12;
+
+        card.style.transform = `perspective(900px) rotateX(${-tiltX}deg) rotateY(${tiltY}deg) translateZ(6px)`;
+        card.style.boxShadow = `0 32px 65px rgba(0,0,0,0.12), ${tiltY * 1.5}px ${tiltX * 1.5}px 55px rgba(77,255,173,0.12)`;
+      });
+
+      card.addEventListener('mouseleave', () => {
+        card.style.transform = 'none';
+        card.style.boxShadow = '0 20px 50px rgba(0,0,0,0.08)';
+      });
+    });
+
+    // Add animation style dynamically
+    const style = document.createElement('style');
+    style.innerHTML = `
+      .animate-up {
+        opacity: 1 !important;
+        transform: translateY(0) !important;
+      }
+    `;
+    document.head.appendChild(style);
+  </script>
+</body>
+</html>

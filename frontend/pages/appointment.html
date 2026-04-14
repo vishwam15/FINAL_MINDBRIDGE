@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Appointments — MindBridge</title>
+    <link rel="stylesheet" href="../css/style.css">
+    <style>
+        .counselor-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+            gap: 16px;
+        }
+        .counselor-card {
+            background: var(--white);
+            border: 1px solid var(--border);
+            border-radius: var(--r-lg);
+            padding: 24px;
+            cursor: pointer;
+            transition: var(--t-med);
+            text-align: center;
+            position: relative;
+        }
+        .counselor-card:hover {
+            transform: translateY(-3px);
+            border-color: var(--sage-light);
+            box-shadow: var(--shadow-md);
+        }
+        .counselor-card.selected {
+            border-color: var(--sage);
+            background: var(--sage-mist);
+            box-shadow: 0 12px 30px var(--neon-glow);
+            transform: translateY(-5px);
+        }
+        .counselor-card.selected::after {
+            content: '✓ Selected';
+            position: absolute;
+            top: 12px;
+            right: 12px;
+            font-size: 0.68rem;
+            background: var(--sage);
+            color: white;
+            padding: 4px 10px;
+            border-radius: var(--r-full);
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+        .counselor-avatar {
+            width: 64px;
+            height: 64px;
+            border-radius: 20px;
+            background: linear-gradient(135deg, var(--sage), var(--sage-3));
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin: 0 auto 16px;
+        }
+        .counselor-name { font-weight: 600; font-size: 1.1rem; color: var(--ink); margin-bottom: 4px; }
+        .counselor-spec { font-size: 0.85rem; color: var(--sage); font-weight: 500; text-transform: uppercase; letter-spacing: 0.05em; }
+        .counselor-qual { font-size: 0.75rem; color: var(--text-muted); margin-top: 6px; }
+
+        .time-slot-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+            gap: 10px;
+            margin-top: 16px;
+        }
+
+        .time-chip {
+            padding: 11px 16px;
+            background: var(--white);
+            border: 1.5px solid var(--border);
+            border-radius: var(--r-md);
+            cursor: pointer;
+            font-family: var(--font-ui);
+            font-size: 0.9rem;
+            font-weight: 500;
+            color: var(--text-secondary);
+            transition: var(--t-fast);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .time-chip:hover {
+            border-color: var(--sage-light);
+            background: var(--sage-mist);
+            color: var(--sage);
+            transform: translateY(-1px);
+        }
+
+        .time-chip.selected {
+            background: var(--sage);
+            color: var(--white);
+            border-color: var(--sage);
+            box-shadow: 0 6px 16px var(--neon-glow);
+            font-weight: 600;
+            transform: scale(1.02);
+            z-index: 1;
+        }
+
+        .time-chip.selected::after {
+            content: '✓';
+            position: absolute;
+            top: 2px;
+            right: 4px;
+            font-size: 0.7rem;
+            color: rgba(255, 255, 255, 0.8);
+        }
+    </style>
+</head>
+<body>
+    <div class="app-shell">
+        <aside class="sidebar" id="app-sidebar"></aside>
+        
+        <div class="main-content">
+            <header class="topbar"></header>
+            
+            <main class="page-body">
+                <div class="page-header animate-in">
+                    <div>
+                        <h2 class="page-title">Appointments</h2>
+                        <div class="section-sub">Schedule your private session with our experts</div>
+                    </div>
+                    <div class="page-actions">
+                        <div class="date-display" id="topbar-date">Sat, 28 Mar</div>
+                    </div>
+                </div>
+
+                <div class="tab-bar animate-in delay-1">
+                    <button class="tab-btn active" onclick="switchTab('book', this)">Book Session</button>
+                    <button class="tab-btn" onclick="switchTab('history', this)">My Appointments</button>
+                </div>
+
+                <!-- Book Tab -->
+                <div class="tab-pane active" id="tab-book">
+                    <div style="max-width: 900px;" class="animate-in delay-2">
+                        <!-- Step 1: Counselor -->
+                        <div style="margin-bottom: 32px;">
+                            <div class="section-title" style="margin-bottom: 16px;">Step 1 — Choose Your Counselor</div>
+                            <div id="counselors-grid" class="counselor-grid">
+                                <div class="loading-wrap" style="grid-column: 1/-1;"><div class="spinner"></div></div>
+                            </div>
+                        </div>
+
+                        <div class="grid-2">
+                            <!-- Step 2: Date + Time -->
+                            <div class="card">
+                                <div class="card-header"><span class="card-title">Step 2 — Date & Time</span></div>
+                                <div class="card-body">
+                                    <div class="form-group">
+                                        <label class="form-label">Available Date</label>
+                                        <input class="form-input" type="date" id="appt-date" onchange="updateSummary()" />
+                                    </div>
+                                    <label class="form-label" style="margin-top: 20px;">Available Slots</label>
+                                    <div class="time-slot-grid">
+                                        <button class="time-chip" onclick="selectTime('09:00', this)">09:00</button>
+                                        <button class="time-chip" onclick="selectTime('10:00', this)">10:00</button>
+                                        <button class="time-chip" onclick="selectTime('11:00', this)">11:00</button>
+                                        <button class="time-chip" onclick="selectTime('12:00', this)">12:00</button>
+                                        <button class="time-chip" onclick="selectTime('14:00', this)">14:00</button>
+                                        <button class="time-chip" onclick="selectTime('15:00', this)">15:00</button>
+                                        <button class="time-chip" onclick="selectTime('16:00', this)">16:00</button>
+                                        <button class="time-chip" onclick="selectTime('17:00', this)">17:00</button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Step 3: Mode -->
+                            <div class="card">
+                                <div class="card-header"><span class="card-title">Step 3 — Session Mode</span></div>
+                                <div class="card-body">
+                                    <div class="mode-group" style="flex-direction: column;">
+                                        <div class="mode-card selected" id="mode-online" onclick="selectMode('online', this)">
+                                            <div class="mode-card-icon">💻</div>
+                                            <div>
+                                                <div class="mode-card-label">Online Session</div>
+                                                <div class="mode-card-sub">Secure video/audio call</div>
+                                            </div>
+                                        </div>
+                                        <div class="mode-card" id="mode-offline" style="margin-top: 10px;" onclick="selectMode('offline', this)">
+                                            <div class="mode-card-icon">🏫</div>
+                                            <div>
+                                                <div class="mode-card-label">In-Person</div>
+                                                <div class="mode-card-sub">Campus Counseling Center</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Summary -->
+                        <div class="booking-summary animate-in" id="booking-summary" style="display:none; margin-top: 24px;">
+                            <div class="booking-summary-eyebrow">Confirm Details</div>
+                            <div class="summary-row"><span class="summary-key">Counselor</span><span class="summary-val" id="sum-counselor">—</span></div>
+                            <div class="summary-row"><span class="summary-key">Scheduled On</span><span class="summary-val" id="sum-datetime">—</span></div>
+                            <div class="summary-row"><span class="summary-key">Location/Mode</span><span class="summary-val" id="sum-mode">—</span></div>
+                        </div>
+
+                        <div id="book-alert" style="margin-top: 20px;"></div>
+                        
+                        <div style="margin-top: 30px; display: flex; gap: 12px; align-items: center;">
+                            <button class="btn btn-primary btn-lg" id="book-btn" onclick="bookAppointment()">Confirm Appointment →</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- History Tab -->
+                <div class="tab-pane" id="tab-history">
+                    <div id="my-appts" class="animate-in">
+                        <div class="loading-wrap"><div class="spinner"></div></div>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <script src="../js/api.js"></script>
+    <script>
+        const user = requireAuth(['student']);
+        if (user) renderSidebar('appointment');
+
+        document.getElementById('appt-date').min = new Date().toISOString().slice(0,10);
+        let selId = null, selName = null, selT = null, selM = 'online';
+
+        async function loadCounselors() {
+            try {
+                const res = await apiFetch('/resources/counselors');
+                const grid = document.getElementById('counselors-grid');
+                if (!res.data.length) { 
+                    grid.innerHTML = '<div class="empty-state" style="grid-column: 1/-1;"><span class="empty-icon">👥</span><div class="empty-title">No counselors available</div></div>'; 
+                    return; 
+                }
+                grid.innerHTML = res.data.map((c, i) => `
+                    <div class="counselor-card animate-in" style="animation-delay: ${0.1 + i*0.05}s" onclick="selectCounselor(${c.counselor_id},'${c.name.replace(/'/g,"\\'")}',this)">
+                        <div class="counselor-avatar">${c.name[0]}</div>
+                        <div class="counselor-name">${c.name}</div>
+                        <div class="counselor-spec">${c.specialization || 'Counselor'}</div>
+                        <div class="counselor-qual">${c.qualification || ''}</div>
+                    </div>`).join('');
+            } catch (err) {
+                showToast(err.message, 'error');
+            }
+        }
+
+        function selectCounselor(id, name, el) {
+            selId = id; selName = name;
+            document.querySelectorAll('.counselor-card').forEach(c => c.classList.remove('selected'));
+            el.classList.add('selected');
+            updateSummary();
+        }
+
+        function selectTime(t, btn) {
+            selT = t;
+            document.querySelectorAll('.time-chip').forEach(c => c.classList.remove('selected'));
+            btn.classList.add('selected');
+            updateSummary();
+        }
+
+        function selectMode(m, btn) {
+            selM = m;
+            document.querySelectorAll('.mode-card').forEach(c => c.classList.remove('selected'));
+            btn.classList.add('selected');
+            updateSummary();
+        }
+
+        function isPastDateTime(date, time) {
+            if (!date || !time) return false;
+            const selected = new Date(`${date}T${time}:00`);
+            const now = new Date();
+            return selected <= now;
+        }
+
+        function updateSummary() {
+            const date = document.getElementById('appt-date').value;
+            const sum = document.getElementById('booking-summary');
+            const alert = document.getElementById('book-alert');
+            const bookBtn = document.getElementById('book-btn');
+
+            if (!selId || !date || !selT) {
+                sum.style.display = 'none';
+                bookBtn.disabled = false;
+                return;
+            }
+
+            if (isPastDateTime(date, selT)) {
+                sum.style.display = 'none';
+                bookBtn.disabled = true;
+                alert.innerHTML = '<div class="alert alert-warning animate-in">Please choose a future date and time. The selected slot has already passed.</div>';
+                return;
+            }
+
+            alert.innerHTML = '';
+            bookBtn.disabled = false;
+            sum.style.display = 'block';
+            document.getElementById('sum-counselor').textContent = selName;
+            document.getElementById('sum-datetime').textContent = `${formatDate(date)} at ${selT}`;
+            document.getElementById('sum-mode').textContent = selM === 'online' ? '💻 Online Session' : '🏫 In-Person';
+        }
+
+        async function bookAppointment() {
+            const alert = document.getElementById('book-alert');
+            const date = document.getElementById('appt-date').value;
+            if (!selId || !date || !selT) {
+                alert.innerHTML = '<div class="alert alert-warning animate-in">Please complete all steps to book.</div>';
+                return;
+            }
+            if (isPastDateTime(date, selT)) {
+                alert.innerHTML = '<div class="alert alert-warning animate-in">Please choose a future date and time. The selected slot has already passed.</div>';
+                return;
+            }
+            
+            const btn = document.getElementById('book-btn');
+            btn.textContent = 'Processing...'; btn.disabled = true;
+
+            try {
+                await apiFetch('/appointments', {
+                    method: 'POST',
+                    body: JSON.stringify({ student_id: user.id, counselor_id: selId, date: date, time: selT + ':00', mode: selM })
+                });
+                showToast('Appointment Request Sent! 🎉', 'success');
+                alert.innerHTML = '<div class="alert alert-success animate-in">✅ Request sent! Your counselor will confirm soon.</div>';
+                resetForm();
+            } catch (err) {
+                alert.innerHTML = `<div class="alert alert-error animate-in">⚠ ${err.message}</div>`;
+                btn.textContent = 'Confirm Appointment →'; btn.disabled = false;
+            }
+        }
+
+        function resetForm() {
+            selId = null; selT = null;
+            document.querySelectorAll('.counselor-card, .time-chip').forEach(e => e.classList.remove('selected'));
+            document.getElementById('booking-summary').style.display = 'none';
+            document.getElementById('appt-date').value = '';
+            const btn = document.getElementById('book-btn');
+            btn.textContent = 'Confirm Appointment →'; btn.disabled = false;
+        }
+
+        function switchTab(tab, btn) {
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
+            btn.classList.add('active');
+            document.getElementById(`tab-${tab}`).classList.add('active');
+            if (tab === 'history') loadHistory();
+        }
+
+        async function loadHistory() {
+            const el = document.getElementById('my-appts');
+            el.innerHTML = '<div class="loading-wrap"><div class="spinner"></div></div>';
+            try {
+                const res = await apiFetch(`/appointments/student/${user.id}`);
+                const list = res.data;
+                if (!list.length) {
+                    el.innerHTML = '<div class="empty-state"><span class="empty-icon">📅</span><div class="empty-title">No appointments found</div></div>';
+                    return;
+                }
+                el.innerHTML = `<div class="table-container"><table>
+                    <thead><tr><th>Date</th><th>Time</th><th>Counselor</th><th>Mode</th><th>Status</th><th>Note</th></tr></thead>
+                    <tbody>${list.map(a => `
+                        <tr>
+                            <td>${formatDate(a.date)}</td>
+                            <td>${a.time?.slice(0,5)}</td>
+                            <td><div class="cell-primary">${a.counselor_name}</div><div class="cell-sub">${a.specialization||''}</div></td>
+                            <td><span class="badge badge-${a.mode}">${a.mode}</span></td>
+                            <td>${statusBadge(a.status)}</td>
+                            <td>${a.counselor_note ? `<div class="cell-sub">${a.counselor_note}</div>` : '—'}</td>
+                        </tr>`).join('')}</tbody>
+                </table></div>`;
+            } catch (err) {
+                el.innerHTML = `<div class="alert alert-error">⚠ ${err.message}</div>`;
+            }
+        }
+
+        loadCounselors();
+    </script>
+</body>
+</html>

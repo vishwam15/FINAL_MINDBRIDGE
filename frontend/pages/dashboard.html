@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Dashboard — MindBridge</title>
+  <link rel="stylesheet" href="../css/style.css" />
+</head>
+<body>
+<div class="app-shell">
+  <aside class="sidebar" id="app-sidebar"></aside>
+  
+  <div class="main-content">
+    <header class="topbar"></header>
+
+    <main class="page-body">
+      <div class="page-header animate-in">
+        <div>
+          <h2 class="page-title">Student Dashboard</h2>
+          <div class="section-sub">Your personalized wellbeing overview</div>
+        </div>
+        <div class="page-actions">
+           <div class="date-display" id="topbar-date">Sat, 28 Mar</div>
+        </div>
+      </div>
+
+      <!-- Hero Banner -->
+      <div class="hero-banner animate-in">
+        <div class="hero-mesh"></div>
+        <div class="hero-text">
+          <div class="hero-eyebrow">Welcome back</div>
+          <div class="hero-name" id="hero-name">Hello.</div>
+          <p class="hero-sub" style="max-width: 480px;">"The greatest glory in living lies not in never falling, but in rising every time we fall."</p>
+        </div>
+        
+        <!-- Wellness Gauge -->
+        <div class="risk-gauge-container animate-in" id="hero-risk" style="display:none;">
+          <div class="risk-gauge-info">
+            <span class="risk-gauge-label">Wellness Status</span>
+            <span class="risk-gauge-value" id="hero-risk-val">—</span>
+          </div>
+          <div class="risk-gauge-track">
+            <div class="risk-gauge-fill" id="risk-fill"></div>
+          </div>
+          <div class="risk-gauge-status" id="risk-status">Based on your latest assessment</div>
+        </div>
+      </div>
+
+      <div id="risk-alert" class="alert" style="display:none; margin-bottom: 18px;"></div>
+
+      <!-- Quick Stats -->
+      <div class="stats-strip animate-in delay-1">
+        <div class="stat-tile c-sage">
+          <div class="stat-icon-wrap">📋</div>
+          <div class="stat-value" id="s-assessments">—</div>
+          <div class="stat-label">Assessments</div>
+        </div>
+        <div class="stat-tile c-gold">
+          <div class="stat-icon-wrap">📅</div>
+          <div class="stat-value" id="s-appointments">—</div>
+          <div class="stat-label">Total Sessions</div>
+        </div>
+        <div class="stat-tile c-sky">
+          <div class="stat-icon-wrap">📚</div>
+          <div class="stat-value" id="s-resources">—</div>
+          <div class="stat-label">Library Items</div>
+        </div>
+        <div class="stat-tile c-rust">
+          <div class="stat-icon-wrap">⏳</div>
+          <div class="stat-value" id="s-pending">—</div>
+          <div class="stat-label">Upcoming</div>
+        </div>
+      </div>
+
+      <div class="emergency-strip animate-in delay-1">
+        <div class="emergency-card">
+          <div class="emergency-card-left">
+            <div class="emergency-icon">🆘</div>
+            <div>
+              <div class="emergency-title">Emergency Support</div>
+              <div class="emergency-desc">If you need urgent help, call <a href="tel:112">112</a> or our support line at <a href="tel:+911234567890">+91 12345 67890</a>.</div>
+            </div>
+          </div>
+          <button class="btn btn-danger btn-sm" onclick="handleSOS()">SOS</button>
+        </div>
+      </div>
+
+      <!-- Quick Actions -->
+      <div class="section-header animate-in delay-2">
+        <div>
+          <div class="section-title">Support Toolbox</div>
+          <div class="section-sub">Immediate access to essential resources</div>
+        </div>
+      </div>
+      <div class="action-grid animate-in delay-2" style="margin-bottom: 30px;">
+        <a class="action-card" href="assessment.html">
+          <div class="action-arrow">↗</div>
+          <div class="action-card-icon">🧘</div>
+          <div class="action-card-title">Take Assessment</div>
+          <div class="action-card-desc">Check your mental status and get scientific insights.</div>
+        </a>
+        <a class="action-card" href="appointment.html">
+          <div class="action-arrow">↗</div>
+          <div class="action-card-icon">🗓️</div>
+          <div class="action-card-title">Book a Session</div>
+          <div class="action-card-desc">Schedule a private session with our expert team.</div>
+        </a>
+        <a class="action-card" href="resources.html">
+          <div class="action-arrow">↗</div>
+          <div class="action-card-icon">📖</div>
+          <div class="action-card-title">Self-Help Hub</div>
+          <div class="action-card-desc">Explore our curated collection of wellness tools.</div>
+        </a>
+        <a class="action-card" href="chatbot.html">
+          <div class="action-arrow">↗</div>
+          <div class="action-card-icon">🤖</div>
+          <div class="action-card-title">AI Companion</div>
+          <div class="action-card-desc">Talk to our AI assistant for immediate support.</div>
+        </a>
+      </div>
+
+      <!-- Dynamic Content Grid -->
+      <div class="grid-2 animate-in delay-3">
+        <div class="card">
+          <div class="card-header">
+            <span class="card-title">Latest Assessment</span>
+            <a href="assessment.html" class="btn btn-ghost btn-sm">View History</a>
+          </div>
+          <div class="card-body" id="latest-assessment">
+            <div class="loading-wrap"><div class="spinner"></div></div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-header">
+            <span class="card-title">Upcoming Appointments</span>
+            <a href="appointment.html" class="btn btn-ghost btn-sm">Manage</a>
+          </div>
+          <div class="card-body" id="upcoming-appointments">
+            <div class="loading-wrap"><div class="spinner"></div></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card animate-in delay-4">
+        <div class="card-header">
+          <span class="card-title">Assessment History</span>
+          <a href="assessment.html" class="btn btn-ghost btn-sm">Full Report</a>
+        </div>
+        <div class="card-body" id="assessment-history">
+          <div class="loading-wrap"><div class="spinner"></div></div>
+        </div>
+      </div>
+    </main>
+  </div>
+</div>
+<button class="sos-btn" onclick="handleSOS()" title="SOS Emergency Help">SOS</button>
+
+<script src="../js/api.js"></script>
+<script>
+  const user = requireAuth(['student']);
+  if (user) {
+    renderSidebar('dashboard');
+    document.getElementById('hero-name').textContent = `Hello, ${user.name.split(' ')[0]}.`;
+
+    // Load Dashboard Data
+    Promise.all([
+      apiFetch(`/assessments/student/${user.id}`),
+      apiFetch(`/appointments/student/${user.id}`),
+      apiFetch('/resources')
+    ]).then(([aRes, apRes, rRes]) => {
+      const assessments = (aRes.data || []).sort((a,b) => new Date(b.created_at || b.date) - new Date(a.created_at || a.date));
+      const appointments = apRes.data || [];
+      const resources = rRes.data || [];
+      const upcoming = appointments.filter(a => a.status === 'pending' || a.status === 'confirmed');
+
+      document.getElementById('s-assessments').textContent = assessments.length;
+      document.getElementById('s-appointments').textContent = appointments.length;
+      document.getElementById('s-resources').textContent = resources.length;
+      document.getElementById('s-pending').textContent = upcoming.length;
+
+      const latest = assessments[0];
+      const riskAlertEl = document.getElementById('risk-alert');
+      if (latest) {
+        updateWellnessGauge(latest.risk_level);
+        if (latest.risk_level === 'Critical' || latest.risk_level === 'High') {
+          riskAlertEl.style.display = 'block';
+          riskAlertEl.className = 'alert alert-error';
+          riskAlertEl.textContent = `⚠️ Recent assessment indicates ${latest.risk_level} risk. Please book a counseling session immediately.`;
+        } else {
+          riskAlertEl.style.display = 'block';
+          riskAlertEl.className = 'alert alert-success';
+          riskAlertEl.textContent = `✅ Recent assessment indicates ${latest.risk_level} risk. Keep up the good self-care habits.`;
+        }
+      } else {
+        riskAlertEl.style.display = 'none';
+      }
+
+      // Latest assessment card
+      const laEl = document.getElementById('latest-assessment');
+      const historyEl = document.getElementById('assessment-history');
+      if (latest) {
+        laEl.innerHTML = `
+          <div class="result-card ${latest.risk_level?.toLowerCase()} animate-in" style="margin:0; padding:20px;">
+            <div class="result-eyebrow">Risk Level</div>
+            <div class="result-value" style="font-size:1.8rem;">${latest.risk_level}</div>
+            <p style="font-size:0.75rem; margin-top:8px; opacity:0.7;">Recorded on ${formatDate(latest.date)}</p>
+            <div style="display:flex; gap:8px; margin-top:16px;">
+                 <div style="background:rgba(255,255,255,0.4); border-radius:8px; padding:10px; flex:1; text-align:center;">
+                    <div style="font-size:0.6rem; text-transform:uppercase; opacity:0.6;">Stress</div>
+                    <div style="font-weight:700;">${scoreLabel(latest.stress_level)}</div>
+                 </div>
+                 <div style="background:rgba(255,255,255,0.4); border-radius:8px; padding:10px; flex:1; text-align:center;">
+                    <div style="font-size:0.6rem; text-transform:uppercase; opacity:0.6;">Anxiety</div>
+                    <div style="font-weight:700;">${scoreLabel(latest.anxiety_level)}</div>
+                 </div>
+            </div>
+          </div>`;
+      } else {
+        laEl.innerHTML = `
+          <div class="empty-state">
+            <span class="empty-icon">📊</span>
+            <div class="empty-title">No data available</div>
+            <a href="assessment.html" class="btn btn-sage btn-sm" style="margin-top:10px;">Start Assessment</a>
+          </div>`;
+      }
+
+      if (historyEl) {
+        historyEl.innerHTML = renderAssessmentHistory(assessments);
+      }
+
+      // Upcoming appointments
+      const upEl = document.getElementById('upcoming-appointments');
+      const nextSessions = upcoming.slice(0, 3);
+      if (nextSessions.length) {
+        upEl.innerHTML = nextSessions.map(a => `
+          <div style="display:flex; justify-content:space-between; align-items:center; padding:12px 0; border-bottom:1px solid var(--border);">
+            <div>
+              <div class="cell-primary">${a.counselor_name}</div>
+              <div class="cell-sub">${formatDate(a.date)} at ${a.time?.slice(0,5)}</div>
+              ${a.counselor_note ? `<div class="cell-sub" style="margin-top:6px; font-size:0.85rem; color: var(--text-secondary);">Note: ${a.counselor_note}</div>` : ''}
+            </div>
+            ${statusBadge(a.status)}
+          </div>`).join('') + `<a href="appointment.html" class="btn btn-ghost btn-sm btn-full" style="margin-top:16px;">Go to Appointments</a>`;
+      } else {
+        upEl.innerHTML = `
+          <div class="empty-state">
+            <span class="empty-icon">📅</span>
+            <div class="empty-title">Clean schedule</div>
+            <a href="appointment.html" class="btn btn-sage btn-sm" style="margin-top:10px;">Book Session</a>
+          </div>`;
+      }
+    }).catch(err => showToast(err.message, 'error'));
+  }
+
+  function updateWellnessGauge(risk) {
+    const container = document.getElementById('hero-risk');
+    const valText = document.getElementById('hero-risk-val');
+    const fill = document.getElementById('risk-fill');
+    const statusText = document.getElementById('risk-status');
+
+    container.style.display = 'block';
+    valText.textContent = risk;
+
+    const r = risk.toLowerCase();
+    let pct = 0;
+    let bgColor = '';
+    let status = '';
+
+    if (r === 'low') { 
+      pct = 25; bgColor = 'var(--sage-light)'; status = 'Indicators look positive';
+    } else if (r === 'moderate') {
+      pct = 50; bgColor = 'var(--gold)'; status = 'Consider speaking with someone';
+    } else if (r === 'high') {
+      pct = 75; bgColor = 'var(--orange-light, #e67e22)'; status = 'Recommendation: Book a session';
+    } else if (r === 'critical') {
+      pct = 100; bgColor = 'var(--rust)'; status = 'Urgent support recommended';
+    }
+
+    fill.style.width = pct + '%';
+    fill.style.background = bgColor;
+    statusText.textContent = status;
+  }
+
+  const scoreLabel = (value) => {
+    const labels = ['None', 'Low', 'Moderate', 'High', 'Very High'];
+    return labels[Number(value)] || '—';
+  };
+
+  const renderAssessmentHistory = (assessments) => {
+    if (!assessments || assessments.length === 0) {
+      return `
+        <div class="empty-state">
+          <span class="empty-icon">🗂️</span>
+          <div class="empty-title">No assessments yet</div>
+          <a href="assessment.html" class="btn btn-sage btn-sm" style="margin-top:10px;">Take your first assessment</a>
+        </div>`;
+    }
+
+    const rows = assessments.slice(0, 5).map(a => `
+      <div class="history-row" style="display:flex; justify-content:space-between; gap:12px; padding:14px 0; border-bottom:1px solid rgba(255,255,255,0.08);">
+        <div>
+          <div class="cell-primary">${formatDate(a.date)}</div>
+          <div class="cell-sub">Risk: ${a.risk_level || '—'}</div>
+        </div>
+        <div style="display:flex; gap:10px; text-align:right;">
+          <div>
+            <div class="cell-label">Stress</div>
+            <div class="cell-primary">${scoreLabel(a.stress_level)}</div>
+          </div>
+          <div>
+            <div class="cell-label">Anxiety</div>
+            <div class="cell-primary">${scoreLabel(a.anxiety_level)}</div>
+          </div>
+        </div>
+      </div>`).join('');
+
+    return `
+      <div style="display:flex; flex-direction:column; gap:0;">
+        ${rows}
+      </div>
+      ${assessments.length > 5 ? `<div style="margin-top:16px; text-align:right;"><a href=\"assessment.html\" class=\"btn btn-ghost btn-sm\">View all assessments</a></div>` : ''}
+    `;
+  };
+</script>
+</body>
+</html>

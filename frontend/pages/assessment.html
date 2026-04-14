@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Assessment — MindBridge</title>
+    <link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+    <div class="app-shell">
+        <aside class="sidebar" id="app-sidebar"></aside>
+        
+        <div class="main-content">
+            <header class="topbar"></header>
+            
+            <main class="page-body">
+                <div class="page-header animate-in">
+                    <div>
+                        <h2 class="page-title">Mental Health Assessment</h2>
+                        <div class="section-sub">Standardized screening for your emotional wellbeing</div>
+                    </div>
+                </div>
+
+                <div class="tab-bar animate-in delay-1">
+                    <button class="tab-btn active" onclick="switchTab('take', this)">Take Assessment</button>
+                    <button class="tab-btn" onclick="switchTab('history', this)">Assessment History</button>
+                </div>
+
+                <!-- ── Take Assessment ── -->
+                <div class="tab-pane active" id="tab-take">
+                    <div id="q-section">
+                        <div style="max-width:800px;">
+                            <div style="margin-bottom:30px;">
+                                <div class="section-title">How have you been feeling?</div>
+                        <p class="section-sub">Over the last 2 weeks, how often have you been bothered by the following problems? Each assessment uses a fresh randomized question set.</p>
+
+<div id="questions-container" class="animate-in delay-2"></div>
+                                <div id="q-alert" style="margin-top:20px;"></div>
+
+                            <div style="margin-top:30px; display:flex; gap:12px; align-items:center; flex-wrap:wrap;">
+                                <button class="btn btn-primary btn-lg" id="submit-btn" onclick="submitAssessment()">Submit Assessment</button>
+                                <button class="btn btn-ghost" onclick="resetAssessment()">Reset Answers</button>
+                            </div>
+                        </div>
+                </div>
+            </div>
+
+                    <!-- Result section -->
+                    <div id="result-section" style="display:none; max-width:800px;" class="animate-in">
+                        <div id="result-card-area"></div>
+                        <div id="crisis-section" style="display:none; margin-bottom:30px;"></div>
+                        <div style="margin-bottom:30px;">
+                            <div class="section-title" style="margin-bottom:16px;">Recommended Resources</div>
+                            <div id="rec-resources"></div>
+                        </div>
+                        <div style="display:flex; gap:12px; flex-wrap:wrap;">
+                            <button class="btn btn-ghost" onclick="resetAssessment()">← Retake Assessment</button>
+                            <a href="appointment.html" class="btn btn-primary">Book Counseling</a>
+                            <a href="dashboard.html" class="btn btn-ghost">Go to Dashboard</a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- History Tab -->
+                <div class="tab-pane" id="tab-history">
+                    <div id="history-area" class="animate-in">
+                        <div class="loading-wrap"><div class="spinner"></div></div>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <script src="../js/api.js"></script>
+    <script>
+        const user = requireAuth(['student']);
+        if (user) renderSidebar('assessment');
+
+        const answerOptions = [
+            'Not at all',
+            'Several days',
+            'More than half the days',
+            'Nearly every day'
+        ];
+
+        const questionBank = [
+            { id: 'q1', text: 'Feeling nervous, anxious, or on edge?', category: 'anxiety' },
+            { id: 'q2', text: 'Not being able to stop or control worrying?', category: 'anxiety' },
+            { id: 'q3', text: 'Worrying too much about different things?', category: 'anxiety' },
+            { id: 'q4', text: 'Feeling restless or unable to relax?', category: 'anxiety' },
+            { id: 'q5', text: 'Experiencing sudden feelings of panic, racing heart, or sweating?', category: 'anxiety' },
+            { id: 'q6', text: 'Feeling tense or irritable most of the day?', category: 'stress' },
+            { id: 'q7', text: 'Having trouble unwinding after a busy day?', category: 'stress' },
+            { id: 'q8', text: 'Feeling overwhelmed by academic or daily demands?', category: 'stress' },
+            { id: 'q9', text: 'Finding it hard to concentrate because your mind is full of worries?', category: 'stress' },
+            { id: 'q10', text: 'Feeling exhausted or drained even after a normal day?', category: 'stress' }
+        ];
+
+        let currentQuestions = [];
+        const selectedAnswers = {};
+
+        function shuffleArray(array) {
+            return array
+                .map(value => ({ value, sort: Math.random() }))
+                .sort((a, b) => a.sort - b.sort)
+                .map(({ value }) => value);
+        }
+
+        function chooseQuestions(count = 6) {
+            const anxietyItems = shuffleArray(questionBank.filter(q => q.category === 'anxiety'));
+            const stressItems = shuffleArray(questionBank.filter(q => q.category === 'stress'));
+            const selected = [
+                ...anxietyItems.slice(0, 3),
+                ...stressItems.slice(0, 3)
+            ];
+            return shuffleArray(selected).slice(0, count);
+        }
+
+        function renderQuestions() {
+            currentQuestions = chooseQuestions(6);
+            Object.keys(selectedAnswers).forEach(key => delete selectedAnswers[key]);
+            const container = document.getElementById('questions-container');
+            container.innerHTML = currentQuestions.map((question, index) => `
+                <div class="question-block">
+                    <div class="question-num">Question ${String(index + 1).padStart(2, '0')} — Required</div>
+                    <p class="question-text">${question.text}</p>
+                    <div class="choice-row" id="${question.id}-opts">
+                        ${answerOptions.map((label, optionIndex) => `
+                            <button class="choice-btn" onclick="selectAnswer('${question.id}', ${optionIndex}, this)">${label}</button>
+                        `).join('')}
+                    </div>
+                </div>
+            `).join('');
+            document.getElementById('q-alert').innerHTML = '';
+        }
+
+        function selectAnswer(questionId, optionIndex, btn) {
+            selectedAnswers[questionId] = optionIndex;
+            const container = btn.parentElement;
+            container.querySelectorAll('.choice-btn').forEach(b => b.classList.remove('selected'));
+            btn.classList.add('selected');
+        }
+
+        function scoreLabel(score) {
+            if (score === null || score === undefined || isNaN(score)) return '—';
+            if (score < 0.75) return 'None';
+            if (score < 1.75) return 'Low';
+            if (score < 2.5) return 'Moderate';
+            if (score < 3.5) return 'High';
+            return 'Very High';
+        }
+
+        async function submitAssessment() {
+            const missing = currentQuestions.filter(q => selectedAnswers[q.id] === undefined);
+            if (missing.length > 0) {
+                document.getElementById('q-alert').innerHTML = '<div class="alert alert-warning animate-in">Please answer all questions before submitting.</div>';
+                return;
+            }
+
+            const totals = { anxiety: { sum: 0, count: 0 }, stress: { sum: 0, count: 0 } };
+            currentQuestions.forEach(q => {
+                const value = selectedAnswers[q.id];
+                totals[q.category].sum += value;
+                totals[q.category].count += 1;
+            });
+
+            const anxietyLevel = scoreLabel(totals.anxiety.sum / totals.anxiety.count);
+            const stressLevel = scoreLabel(totals.stress.sum / totals.stress.count);
+            const depressionLevel = scoreLabel((totals.anxiety.sum + totals.stress.sum) / (totals.anxiety.count + totals.stress.count));
+
+            const btn = document.getElementById('submit-btn');
+            btn.textContent = 'Submitting...'; btn.disabled = true;
+
+            try {
+                const res = await apiFetch('/assessments', {
+                    method: 'POST',
+                    body: JSON.stringify({
+                        student_id: user.id,
+                        stress_level: stressLevel,
+                        anxiety_level: anxietyLevel,
+                        depression_level: depressionLevel
+                    })
+                });
+                showResults(res.data);
+                loadHistory();
+                btn.textContent = 'Submit Assessment';
+                btn.disabled = false;
+            } catch (err) {
+                document.getElementById('q-alert').innerHTML = `<div class="alert alert-error animate-in">⚠ ${err.message}</div>`;
+                btn.textContent = 'Submit Assessment'; btn.disabled = false;
+            }
+        }
+
+        function showResults(data) {
+            document.getElementById('q-section').style.display = 'none';
+            document.getElementById('result-section').style.display = 'block';
+
+            const riskLower = (data.risk_level || '').toLowerCase();
+            const icons = { low:'🌿', moderate:'🌤️', high:'🚨', critical:'🆘' };
+            const msgs = {
+                low: 'Your indicators look stable. Regular self-care and staying connected can help maintain this balance.',
+                moderate: 'You might be feeling extra pressure lately. It could be helpful to talk things through with a counselor.',
+                high: 'You are experiencing significant distress. We strongly recommend setting up a session with our team.',
+                critical: 'Please reach out for help immediately. You are not alone and support is ready for you.'
+            };
+
+            document.getElementById('result-card-area').innerHTML = `
+                <div class="result-card ${riskLower} animate-in" style="margin-bottom:30px;">
+                    <div style="font-size:3.2rem; margin-bottom:14px;">${icons[riskLower] || '🧠'}</div>
+                    <div class="result-eyebrow">Risk Assessment Result</div>
+                    <div class="result-value">${data.risk_level}</div>
+                    <p style="font-size:1rem; margin-top:10px; opacity:0.85;">${msgs[riskLower] || ''}</p>
+                    <div style="display:flex; gap:10px; margin-top:24px; flex-wrap:wrap;">
+                        ${buildPill('Stress', data.stress_level)}
+                        ${buildPill('Anxiety', data.anxiety_level)}
+                        ${buildPill('Depression', data.depression_level || 'N/A')}
+                        ${data.sleep_quality ? buildPill('Sleep', data.sleep_quality) : ''}
+                        ${data.social_support ? buildPill('Support', data.social_support) : ''}
+                        ${data.academic_pressure ? buildPill('Pressure', data.academic_pressure) : ''}
+                        ${data.physical_activity ? buildPill('Activity', data.physical_activity) : ''}
+                        ${data.self_harm_thoughts ? buildPill('Self-harm', data.self_harm_thoughts) : ''}
+                    </div>
+                </div>`;
+            const recEl = document.getElementById('rec-resources');
+            if (data.recommended_resources?.length) {
+                recEl.innerHTML = `<div class="grid-auto">${data.recommended_resources.map((r, i) => `
+                    <div class="resource-card animate-in" style="animation-delay:${0.1+i*0.05}s">
+                        <div class="resource-title">${r.title}</div>
+                        <div class="resource-type">${r.type}</div>
+                        <div class="resource-desc">${r.description}</div>
+                        <a href="resources.html" class="btn btn-ghost btn-sm" style="margin-top:12px; width:fit-content;">Learn More</a>
+                    </div>`).join('')}</div>`;
+            } else {
+                recEl.innerHTML = '<p class="section-sub">No specific recommendations. Explore general resources for overall wellbeing.</p>';
+            }
+        }
+
+        function buildPill(label, val) {
+            return `<div style="background:rgba(255,255,255,0.45); border-radius:10px; padding:10px 16px; min-width:100px; text-align:center; border:1px solid rgba(255,255,255,0.3);">
+                <div style="font-size:0.65rem; text-transform:uppercase; letter-spacing:0.1em; opacity:0.6; margin-bottom:4px;">${label}</div>
+                <div style="font-weight:700; font-size:0.9rem;">${val}</div>
+            </div>`;
+        }
+
+        function switchTab(tab, btn) {
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
+            btn.classList.add('active');
+            document.getElementById(`tab-${tab}`).classList.add('active');
+            if (tab === 'history') loadHistory();
+        }
+
+        async function loadHistory() {
+            const h = document.getElementById('history-area');
+            h.innerHTML = '<div class="loading-wrap"><div class="spinner"></div></div>';
+            try {
+                const res = await apiFetch(`/assessments/student/${user.id}`);
+                const list = (res.data || []).sort((a,b) => new Date(b.created_at || b.date) - new Date(a.created_at || a.date));
+                console.debug('Assessment history loadHistory:', list.length, 'records');
+                if (!list || !list.length) {
+                    h.innerHTML = '<div class="empty-state"><span class="empty-icon">📊</span><div class="empty-title">History is empty</div><div class="empty-desc">Your past scores will appear here.</div></div>';
+                    return;
+                }
+                const tableHtml = `<div class="table-container"><table><thead><tr><th>Date</th><th>Stress</th><th>Anxiety</th><th>Depression</th><th>Risk</th><th>Self-harm</th></tr></thead><tbody>
+                    ${list.map(a => `<tr><td>${formatDate(a.date)}</td><td>${scoreLabel(a.stress_level)}</td><td>${scoreLabel(a.anxiety_level)}</td><td>${a.depression_level ? scoreLabel(a.depression_level) : '—'}</td><td>${riskBadge(a.risk_level)}</td><td>${a.self_harm_thoughts ? 'Yes' : 'No'}</td></tr>`).join('')}
+                </tbody></table></div>`;
+                h.innerHTML = tableHtml;
+            } catch (err) {
+                h.innerHTML = `<div class="alert alert-error">Failed to load history: ${err.message}</div>`;
+            }
+        }
+
+        function resetAssessment() {
+            Object.keys(selectedAnswers).forEach(key => delete selectedAnswers[key]);
+            renderQuestions();
+            document.getElementById('q-section').style.display = 'block';
+            document.getElementById('result-section').style.display = 'none';
+            document.getElementById('q-alert').innerHTML = '';
+            document.getElementById('submit-btn').textContent = 'Submit Assessment';
+            document.getElementById('submit-btn').disabled = false;
+        }
+
+        if (window.location.hash === '#history') {
+            const hTab = document.querySelectorAll('.tab-btn')[1];
+            if (hTab) hTab.click();
+        }
+
+        renderQuestions();
+        loadHistory();
+    </script>
+</body>
+</html>

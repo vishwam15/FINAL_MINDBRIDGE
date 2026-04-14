@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Session Notes — MindBridge</title>
+    <link rel="stylesheet" href="../css/style.css">
+    <style>
+        .notes-layout { 
+            display: grid; 
+            grid-template-columns: 340px 1fr; 
+            gap: 24px; 
+            height: calc(100vh - 180px);
+            min-height: 500px;
+        }
+        @media (max-width: 1000px) { .notes-layout { grid-template-columns: 1fr; height: auto; } }
+
+        .list-panel { 
+            display: flex; flex-direction: column; overflow: hidden; 
+            background: var(--white); border: 1px solid var(--border); border-radius: var(--r-xl);
+            box-shadow: var(--shadow-sm);
+        }
+        .list-header { padding: 18px 20px; border-bottom: 1px solid var(--border); font-weight: 600; font-family: var(--font-view); }
+        .list-body { flex: 1; overflow-y: auto; }
+
+        .note-target-card { 
+            padding: 16px 20px; border-bottom: 1px solid var(--border-light); cursor: pointer; transition: var(--t-fast);
+        }
+        .note-target-card:hover { background: var(--cream-2); }
+        .note-target-card.active { background: var(--sage-mist); border-left: 4px solid var(--sage); }
+        .note-target-card h4 { font-size: 0.95rem; margin-bottom: 4px; color: var(--ink); }
+        .note-target-card p { font-size: 0.75rem; color: var(--text-muted); line-height: 1.4; }
+
+        .form-panel { 
+            background: var(--white); border: 1px solid var(--border); border-radius: var(--r-xl); padding: 30px; 
+            overflow-y: auto; box-shadow: var(--shadow-sm);
+        }
+        .form-panel h3 { margin-bottom: 24px; font-family: var(--font-view); font-weight: 600; font-size: 1.2rem; }
+
+        .session-info-bar { 
+            background: var(--cream-2); padding: 16px 20px; border-radius: var(--r-lg); margin-bottom: 24px; 
+            font-size: 0.88rem; color: var(--text-secondary); display: flex; gap: 16px; flex-wrap: wrap;
+        }
+        .session-info-bar strong { color: var(--ink); }
+
+        .btn-stack { display: flex; gap: 12px; margin-top: 30px; }
+    </style>
+</head>
+<body>
+    <div class="app-shell">
+        <aside class="sidebar" id="app-sidebar"></aside>
+        
+        <div class="main-content">
+            <header class="topbar"></header>
+            
+            <main class="page-body">
+                <div class="page-header animate-in">
+                    <div>
+                        <h2 class="page-title">Session Notes</h2>
+                        <div class="section-sub">Document student sessions and record detailed clinical observations</div>
+                    </div>
+                    <div class="page-actions">
+                        <div class="date-display" id="topbar-date">Sat, 28 Mar</div>
+                    </div>
+                </div>
+
+                <div class="notes-layout animate-in delay-1">
+                    <!-- Left: Appointments -->
+                    <div class="list-panel">
+                        <div class="list-header">📅 Select a Session</div>
+                        <div class="list-body" id="sessions-list">
+                            <div class="loading-wrap"><div class="spinner"></div></div>
+                        </div>
+                    </div>
+
+                    <!-- Right: Editor -->
+                    <div class="form-panel">
+                        <div id="editor-area">
+                            <div class="empty-state" style="padding-top: 60px;">
+                                <span class="empty-icon">📝</span>
+                                <div class="empty-title">Ready to Document</div>
+                                <div class="empty-desc">Select a session from the list to start or edit notes.</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <script src="../js/api.js"></script>
+    <script>
+        const user = requireAuth(['counselor']);
+        if (user) renderSidebar('notes');
+
+        let currentId = null;
+        let allSessions = [];
+
+        async function init() {
+            try {
+                const res = await apiFetch(`/appointments/counselor/${user.id}`);
+                allSessions = (res.data || []).filter(a => a.status === 'confirmed' || a.status === 'completed');
+                renderList();
+            } catch (err) {
+                document.getElementById('sessions-list').innerHTML = `<div class="empty-state">⚠ Failed to load</div>`;
+            }
+        }
+
+        function renderList() {
+            const el = document.getElementById('sessions-list');
+            if (!allSessions.length) {
+                el.innerHTML = `<div class="empty-state"><div class="empty-title">No sessions available</div></div>`;
+                return;
+            }
+            el.innerHTML = allSessions.map(s => `
+                <div class="note-target-card ${currentId === s.appointment_id ? 'active' : ''}" onclick="selectSession(${s.appointment_id})">
+                    <h4>${s.student_name}</h4>
+                    <p>📅 ${formatDate(s.date)} · ${s.time?.slice(0,5) || '—'}</p>
+                    <p>Status: <span style="font-weight:600; text-transform:capitalize;">${s.status}</span></p>
+                </div>`).join('');
+        }
+
+        async function selectSession(id) {
+            currentId = id;
+            renderList();
+            const session = allSessions.find(s => s.appointment_id === id);
+            const area = document.getElementById('editor-area');
+            area.innerHTML = `<div class="loading-wrap"><div class="spinner"></div></div>`;
+
+            try {
+                // Fetch existing note for this session
+                const res = await apiFetch(`/session-notes/${id}`);
+                renderEditor(session, res.data);
+            } catch (err) {
+                renderEditor(session, null);
+            }
+        }
+
+        function renderEditor(s, note) {
+            const area = document.getElementById('editor-area');
+            const n = note || {};
+            area.innerHTML = `
+                <div class="animate-in">
+                    <h3>${note ? 'Edit Clinical Note' : 'New Clinical Note'}</h3>
+                    <div class="session-info-bar">
+                        <span><strong>Student:</strong> ${s.student_name}</span>
+                        <span><strong>Scheduled:</strong> ${formatDate(s.date)} at ${s.time?.slice(0,5)}</span>
+                        <span><strong>Mode:</strong> ${s.mode || 'In-Person'}</span>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Primary Session Notes <span style="color:var(--rust); opacity:0.6">*</span></label>
+                        <textarea class="form-input" id="f-notes" rows="6" placeholder="Key topics, student concerns, and observations...">${n.notes || ''}</textarea>
+                    </div>
+
+                    <div class="grid-2">
+                        <div class="form-group">
+                            <label class="form-label">Mood Assessment</label>
+                            <select class="form-input" id="f-mood">
+                                <option value="">— Select —</option>
+                                ${['Very Low','Low','Neutral','Good','Very Good'].map(v => `<option value="${v}" ${n.mood_assessment===v?'selected':''}>${v}</option>`).join('')}
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Follow-up Date</label>
+                            <input type="date" class="form-input" id="f-followup" value="${n.followup_date || ''}" />
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Progress Notes</label>
+                        <textarea class="form-input" id="f-progress" rows="3" placeholder="Progress observed, homework completion, or next steps">${n.progress_notes || ''}</textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Clinical Recommendations</label>
+                        <textarea class="form-input" id="f-recs" rows="3" placeholder="Suggested actions, referrals, or homework...">${n.recommendations || ''}</textarea>
+                    </div>
+
+                    <div class="btn-stack">
+                        <button class="btn btn-primary btn-lg" onclick="saveNote()">💾 Save Detailed Note</button>
+                        <button class="btn btn-ghost" onclick="init()">Refresh List</button>
+                    </div>
+                </div>`;
+        }
+
+        async function saveNote() {
+            const notes = document.getElementById('f-notes').value.trim();
+            if (!notes) {
+                showToast('Session notes cannot be empty', 'error');
+                return;
+            }
+
+            try {
+                await apiFetch('/session-notes', {
+                    method: 'POST',
+                    body: JSON.stringify({
+                        appointment_id: currentId,
+                        counselor_id: user.id,
+                        notes,
+                        mood_assessment: document.getElementById('f-mood').value || null,
+                        progress_notes: document.getElementById('f-progress').value || null,
+                        followup_date: document.getElementById('f-followup').value || null,
+                        recommendations: document.getElementById('f-recs').value || null
+                    })
+                });
+                showToast('Session note saved successfully! ✅', 'success');
+                selectSession(currentId);
+            } catch (err) {
+                showToast('Failed to save session note', 'error');
+            }
+        }
+
+        init();
+    </script>
+</body>
+</html>

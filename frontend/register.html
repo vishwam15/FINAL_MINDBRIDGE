@@ -1,0 +1,484 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Create Account — MindBridge</title>
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+<div class="auth-page">
+  <div class="auth-glow-cursor"></div>
+
+  <div class="auth-left">
+    <div class="auth-logo">
+      <img src="MindBridgeCanva.png" alt="MindBridge Logo" class="auth-logo-img" />
+    </div>
+    <div class="auth-left-content">
+      <h1 class="auth-headline">Begin your<br><em>healing</em> journey<br>today.</h1>
+      <p class="auth-desc">Join thousands of students accessing confidential mental health support, expert counselors, and curated wellness resources.</p>
+    </div>
+    <div class="auth-stats">
+      <div><span class="auth-stat-val">100%</span><span class="auth-stat-label">Confidential</span></div>
+      <div><span class="auth-stat-val">Free</span><span class="auth-stat-label">For Students</span></div>
+      <div><span class="auth-stat-val">Instant</span><span class="auth-stat-label">Access</span></div>
+    </div>
+  </div>
+
+  <div class="auth-right">
+    <div class="auth-form-box animate-in" style="max-width:420px;">
+      <h2 class="auth-form-title">Create account</h2>
+      <p class="auth-form-sub">Student registration — free and confidential</p>
+
+      <!-- Role selector -->
+      <div class="role-selector">
+        <div class="role-option selected" id="role-student" onclick="setRole('student', this)">
+          <div class="role-option-icon">🎓</div>
+          <div class="role-option-label">Student</div>
+        </div>
+        <div class="role-option" id="role-counselor" onclick="setRole('counselor', this)">
+          <div class="role-option-icon">👩‍⚕️</div>
+          <div class="role-option-label">Counselor</div>
+        </div>
+      </div>
+
+      <div id="alert-box"></div>
+
+      <form id="reg-form" novalidate>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Full Name *</label>
+            <input class="form-input" type="text" id="name" placeholder="Aarav Sharma" />
+            <div class="form-error" id="name-err"></div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Email *</label>
+            <input class="form-input" type="email" id="email" placeholder="you@college.edu" />
+            <div class="form-error" id="email-err"></div>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Password *</label>
+            <input class="form-input" type="password" id="password" placeholder="Min 8 characters" />
+            <div class="form-error" id="pass-err"></div>
+          </div>
+        </div>
+
+        <!-- Student Only Fields -->
+        <div id="student-only-fields">
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">College *</label>
+              <select class="form-input" id="college">
+                <option value="">Select your college</option>
+                <optgroup label="IITs">
+                  <option value="iit_bombay">IIT Bombay</option>
+                  <option value="iit_delhi">IIT Delhi</option>
+                  <option value="iit_madras">IIT Madras</option>
+                  <option value="iit_kanpur">IIT Kanpur</option>
+                  <option value="iit_kharagpur">IIT Kharagpur</option>
+                  <option value="iit_roorkee">IIT Roorkee</option>
+                  <option value="iit_guwahati">IIT Guwahati</option>
+                  <option value="iit_hyderabad">IIT Hyderabad</option>
+                  <option value="iit_bhubaneswar">IIT Bhubaneswar</option>
+                  <option value="iit_gandhinagar">IIT Gandhinagar</option>
+                  <option value="iit_jodhpur">IIT Jodhpur</option>
+                  <option value="iit_mandi">IIT Mandi</option>
+                  <option value="iit_patna">IIT Patna</option>
+                  <option value="iit_tirupati">IIT Tirupati</option>
+                  <option value="iit_indore">IIT Indore</option>
+                  <option value="iit_varanasi">IIT (BHU) Varanasi</option>
+                  <option value="iit_dhanbad">IIT (ISM) Dhanbad</option>
+                  <option value="iit_palakkad">IIT Palakkad</option>
+                  <option value="iit_jammu">IIT Jammu</option>
+                </optgroup>
+                <optgroup label="NITs">
+                  <option value="nit_trichy">NIT Tiruchirappalli</option>
+                  <option value="nit_warangal">NIT Warangal</option>
+                  <option value="nit_surathkal">NIT Surathkal</option>
+                  <option value="nit_calicut">NIT Calicut</option>
+                  <option value="nit_allahabad">NIT Allahabad (MNNIT)</option>
+                  <option value="nit_rourkela">NIT Rourkela</option>
+                  <option value="nit_kurukshetra">NIT Kurukshetra</option>
+                  <option value="nit_bhopal">NIT Bhopal (MANIT)</option>
+                  <option value="nit_jaipur">NIT Jaipur (MNIT)</option>
+                  <option value="nit_surat">NIT Surat (SVNIT)</option>
+                  <option value="nit_nagpur">NIT Nagpur (VNIT)</option>
+                  <option value="nit_hamirpur">NIT Hamirpur</option>
+                  <option value="nit_patna">NIT Patna</option>
+                  <option value="nit_silchar">NIT Silchar</option>
+                  <option value="nit_agartala">NIT Agartala</option>
+                  <option value="nit_durgapur">NIT Durgapur</option>
+                </optgroup>
+                <optgroup label="Central Universities">
+                  <option value="du">University of Delhi</option>
+                  <option value="jnu">Jawaharlal Nehru University</option>
+                  <option value="bhu">Banaras Hindu University</option>
+                  <option value="hyderabad_u">University of Hyderabad</option>
+                  <option value="amu">Aligarh Muslim University</option>
+                  <option value="jadavpur">Jadavpur University</option>
+                  <option value="calcutta_u">University of Calcutta</option>
+                  <option value="mumbai_u">University of Mumbai</option>
+                  <option value="pune_u">Savitribai Phule Pune University</option>
+                  <option value="osmania">Osmania University</option>
+                  <option value="manipal">Manipal Academy of Higher Education</option>
+                  <option value="anna_u">Anna University</option>
+                  <option value="vit">VIT University</option>
+                  <option value="srm">SRM Institute of Science and Technology</option>
+                  <option value="amity">Amity University</option>
+                  <option value="symbiosis">Symbiosis International University</option>
+                  <option value="christ_u">Christ University</option>
+                  <option value="jain_u">Jain University</option>
+                </optgroup>
+                <optgroup label="IIMs & Business Schools">
+                  <option value="iim_ahmedabad">IIM Ahmedabad</option>
+                  <option value="iim_bangalore">IIM Bangalore</option>
+                  <option value="iim_calcutta">IIM Calcutta</option>
+                  <option value="iim_lucknow">IIM Lucknow</option>
+                  <option value="iim_kozhikode">IIM Kozhikode</option>
+                  <option value="iim_indore">IIM Indore</option>
+                  <option value="xlri">XLRI Jamshedpur</option>
+                  <option value="spjimr">SPJIMR Mumbai</option>
+                </optgroup>
+                <optgroup label="Medical Colleges">
+                  <option value="aiims_delhi">AIIMS New Delhi</option>
+                  <option value="aiims_bhopal">AIIMS Bhopal</option>
+                  <option value="aiims_jodhpur">AIIMS Jodhpur</option>
+                  <option value="afmc">AFMC Pune</option>
+                  <option value="kmc_manipal">Kasturba Medical College, Manipal</option>
+                  <option value="jipmer">JIPMER Puducherry</option>
+                </optgroup>
+                <optgroup label="Law Schools">
+                  <option value="nlsiu">NLSIU Bangalore</option>
+                  <option value="nalsar">NALSAR Hyderabad</option>
+                  <option value="nlu_delhi">NLU Delhi</option>
+                  <option value="nlu_jodhpur">NLU Jodhpur</option>
+                </optgroup>
+                <optgroup label="Arts & Science Colleges">
+                  <option value="st_stephens">St. Stephen's College, Delhi</option>
+                  <option value="miranda_house">Miranda House, Delhi</option>
+                  <option value="lsr">Lady Shri Ram College, Delhi</option>
+                  <option value="presidency_kolkata">Presidency University, Kolkata</option>
+                  <option value="loyola_chennai">Loyola College, Chennai</option>
+                  <option value="st_xaviers_mumbai">St. Xavier's College, Mumbai</option>
+                  <option value="fergusson">Fergusson College, Pune</option>
+                  <option value="iit_bombay_arts">IIT Bombay (HSS)</option>
+                  <option value="hcu">Hyderabad Central University</option>
+                </optgroup>
+                <optgroup label="Design & Architecture">
+                  <option value="nid">National Institute of Design</option>
+                  <option value="nift">NIFT</option>
+                  <option value="soa_cept">CEPT University</option>
+                  <option value="spa_delhi">School of Planning & Architecture, Delhi</option>
+                </optgroup>
+                <option value="other">Other / Not Listed</option>
+              </select>
+              <div class="form-error" id="college-err"></div>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Course *</label>
+              <select class="form-input" id="course">
+                <option value="">Select your course</option>
+                <optgroup label="Engineering & Technology">
+                  <option value="btech_cse">B.Tech – Computer Science & Engineering</option>
+                  <option value="btech_it">B.Tech – Information Technology</option>
+                  <option value="btech_ece">B.Tech – Electronics & Communication</option>
+                  <option value="btech_eee">B.Tech – Electrical & Electronics</option>
+                  <option value="btech_mech">B.Tech – Mechanical Engineering</option>
+                  <option value="btech_civil">B.Tech – Civil Engineering</option>
+                  <option value="btech_chem">B.Tech – Chemical Engineering</option>
+                  <option value="btech_ae">B.Tech – Aerospace Engineering</option>
+                  <option value="btech_biotech">B.Tech – Biotechnology</option>
+                  <option value="btech_aiml">B.Tech – AI & Machine Learning</option>
+                  <option value="btech_ds">B.Tech – Data Science</option>
+                  <option value="be_cse">B.E. – Computer Science & Engineering</option>
+                  <option value="mtech_cse">M.Tech – Computer Science</option>
+                  <option value="mtech_ece">M.Tech – Electronics</option>
+                  <option value="mtech_mech">M.Tech – Mechanical Engineering</option>
+                  <option value="mtech_ai">M.Tech – Artificial Intelligence</option>
+                  <option value="dual_btech_mtech">Dual Degree B.Tech + M.Tech</option>
+                </optgroup>
+                <optgroup label="Science">
+                  <option value="bsc_physics">B.Sc – Physics</option>
+                  <option value="bsc_chemistry">B.Sc – Chemistry</option>
+                  <option value="bsc_math">B.Sc – Mathematics</option>
+                  <option value="bsc_biology">B.Sc – Biology</option>
+                  <option value="bsc_cs">B.Sc – Computer Science</option>
+                  <option value="bsc_stats">B.Sc – Statistics</option>
+                  <option value="bsc_biotech">B.Sc – Biotechnology</option>
+                  <option value="msc_physics">M.Sc – Physics</option>
+                  <option value="msc_chemistry">M.Sc – Chemistry</option>
+                  <option value="msc_math">M.Sc – Mathematics</option>
+                  <option value="msc_cs">M.Sc – Computer Science</option>
+                  <option value="msc_biotech">M.Sc – Biotechnology</option>
+                  <option value="phd_science">Ph.D – Sciences</option>
+                  <option value="integrated_msc">Integrated M.Sc</option>
+                </optgroup>
+                <optgroup label="Medicine & Health">
+                  <option value="mbbs">MBBS</option>
+                  <option value="bds">BDS – Dentistry</option>
+                  <option value="bams">BAMS – Ayurveda</option>
+                  <option value="bhms">BHMS – Homeopathy</option>
+                  <option value="bpharm">B.Pharm – Pharmacy</option>
+                  <option value="mpharm">M.Pharm – Pharmacy</option>
+                  <option value="msc_nursing">M.Sc – Nursing</option>
+                  <option value="bsc_nursing">B.Sc – Nursing</option>
+                  <option value="md">MD – Doctor of Medicine</option>
+                  <option value="ms_surgery">MS – Master of Surgery</option>
+                  <option value="mph">MPH – Public Health</option>
+                </optgroup>
+                <optgroup label="Management & Commerce">
+                  <option value="bba">BBA – Business Administration</option>
+                  <option value="bcom">B.Com</option>
+                  <option value="bcom_hons">B.Com (Hons)</option>
+                  <option value="mba">MBA</option>
+                  <option value="mba_finance">MBA – Finance</option>
+                  <option value="mba_hr">MBA – Human Resources</option>
+                  <option value="mba_marketing">MBA – Marketing</option>
+                  <option value="pgdm">PGDM</option>
+                  <option value="mcom">M.Com</option>
+                  <option value="ca">CA – Chartered Accountancy</option>
+                  <option value="cs">CS – Company Secretary</option>
+                </optgroup>
+                <optgroup label="Arts & Humanities">
+                  <option value="ba_english">BA – English</option>
+                  <option value="ba_history">BA – History</option>
+                  <option value="ba_economics">BA – Economics</option>
+                  <option value="ba_political_science">BA – Political Science</option>
+                  <option value="ba_sociology">BA – Sociology</option>
+                  <option value="ba_psychology">BA – Psychology</option>
+                  <option value="ba_philosophy">BA – Philosophy</option>
+                  <option value="ba_hindi">BA – Hindi</option>
+                  <option value="ba_journalism">BA – Journalism & Mass Comm.</option>
+                  <option value="ma_english">MA – English</option>
+                  <option value="ma_economics">MA – Economics</option>
+                  <option value="ma_psychology">MA – Psychology</option>
+                  <option value="ma_sociology">MA – Sociology</option>
+                  <option value="ma_history">MA – History</option>
+                </optgroup>
+                <optgroup label="Law">
+                  <option value="llb">LLB – Bachelor of Laws</option>
+                  <option value="ba_llb">BA LLB (Integrated)</option>
+                  <option value="bba_llb">BBA LLB (Integrated)</option>
+                  <option value="llm">LLM – Master of Laws</option>
+                </optgroup>
+                <optgroup label="Design, Architecture & Fine Arts">
+                  <option value="barch">B.Arch – Architecture</option>
+                  <option value="bdes">B.Des – Design</option>
+                  <option value="bfa">BFA – Fine Arts</option>
+                  <option value="mdes">M.Des – Design</option>
+                  <option value="march">M.Arch – Architecture</option>
+                  <option value="nid_pgdpd">PGDPD – NID</option>
+                </optgroup>
+                <optgroup label="Education">
+                  <option value="bed">B.Ed – Bachelor of Education</option>
+                  <option value="med">M.Ed – Master of Education</option>
+                  <option value="bped">B.P.Ed – Physical Education</option>
+                </optgroup>
+                <optgroup label="Other">
+                  <option value="diploma">Diploma Program</option>
+                  <option value="certificate">Certificate Program</option>
+                  <option value="phd_other">Ph.D – Other</option>
+                  <option value="other_course">Other / Not Listed</option>
+                </optgroup>
+              </select>
+              <div class="form-error" id="course-err"></div>
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">Age</label>
+              <input class="form-input" type="number" id="age" placeholder="20" min="16" max="40" />
+            </div>
+            <div class="form-group">
+              <label class="form-label">Gender</label>
+              <select class="form-input" id="gender">
+                <option value="">Select…</option>
+                <option>Male</option><option>Female</option>
+                <option>Non-binary</option><option>Prefer not to say</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">Year of Study</label>
+              <select class="form-input" id="year">
+                <option value="">Select…</option>
+                <option value="1">1st Year</option><option value="2">2nd Year</option>
+                <option value="3">3rd Year</option><option value="4">4th Year</option>
+                <option value="5">5th Year / PG</option>
+              </select>
+            </div>
+            <div class="form-group" style="width:50%;">
+              <label class="form-label">Contact Number</label>
+              <input class="form-input" type="tel" id="contact" placeholder="9876543210" />
+            </div>
+          </div>
+        </div>
+
+        <!-- Counselor Only Fields -->
+        <div id="counselor-only-fields" style="display: none;">
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">Qualification *</label>
+              <input class="form-input" type="text" id="qualification" placeholder="M.A. Clinical Psychology" />
+              <div class="form-error" id="qual-err"></div>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Specialization</label>
+              <input class="form-input" type="text" id="specialization" placeholder="e.g., Anxiety, Depression, Stress Management" />
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">Years of Experience</label>
+              <input class="form-input" type="number" id="experience" placeholder="5" min="0" max="60" />
+            </div>
+            <div class="form-group">
+              <label class="form-label">Contact Number</label>
+              <input class="form-input" type="tel" id="counselor-contact" placeholder="9876543210" />
+            </div>
+          </div>
+        </div>
+        <button type="submit" class="btn btn-sage btn-full btn-lg" id="submit-btn">Create Account — Join MindBridge →</button>
+      </form>
+
+      <div class="auth-link-row">
+        Already have an account? <a href="login.html">Sign in</a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="js/api.js"></script>
+<script>
+  let selectedRole = 'student';
+
+  function setRole(role, el) {
+    selectedRole = role;
+    document.querySelectorAll('.role-option').forEach(o => o.classList.remove('selected'));
+    el.classList.add('selected');
+    document.getElementById('alert-box').innerHTML = '';
+
+    if (role === 'student') {
+      document.getElementById('student-only-fields').style.display = 'block';
+      document.getElementById('counselor-only-fields').style.display = 'none';
+    } else {
+      document.getElementById('student-only-fields').style.display = 'none';
+      document.getElementById('counselor-only-fields').style.display = 'block';
+    }
+  }
+
+  document.getElementById('reg-form').addEventListener('submit', async e => {
+    e.preventDefault();
+    ['name','email','pass','college','course','qual'].forEach(id => {
+      const el = document.getElementById(`${id}-err`);
+      if (el) el.textContent = '';
+    });
+    document.getElementById('alert-box').innerHTML = '';
+
+    const name = document.getElementById('name').value.trim();
+    const email = document.getElementById('email').value.trim();
+    const password = document.getElementById('password').value;
+
+    let valid = true;
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!name) { document.getElementById('name-err').textContent = 'Required.'; valid = false; }
+    if (!email) { document.getElementById('email-err').textContent = 'Required.'; valid = false; }
+    else if (!emailRegex.test(email)) { document.getElementById('email-err').textContent = 'Invalid email address.'; valid = false; }
+    if (!password) { document.getElementById('pass-err').textContent = 'Required.'; valid = false; }
+    else if (password.length < 8) {
+      document.getElementById('pass-err').textContent = 'Must be at least 8 characters.'; valid = false;
+    }
+
+    if (selectedRole === 'student') {
+      const college = document.getElementById('college').value;
+      const course = document.getElementById('course').value;
+      if (!college) { document.getElementById('college-err').textContent = 'College is required.'; valid = false; }
+      if (!course) { document.getElementById('course-err').textContent = 'Course is required.'; valid = false; }
+    }
+
+    if (!valid) return;
+
+    const btn = document.getElementById('submit-btn');
+    btn.textContent = 'Creating account…'; btn.disabled = true;
+
+    try {
+      let payload = { name, email, password, role: selectedRole };
+
+      if (selectedRole === 'student') {
+        const age = document.getElementById('age').value;
+        const gender = document.getElementById('gender').value;
+        const year = document.getElementById('year').value;
+        const contact = document.getElementById('contact').value.trim();
+        const collegeSelect = document.getElementById('college');
+        const courseSelect = document.getElementById('course');
+
+        const college_name = collegeSelect.options[collegeSelect.selectedIndex].text;
+        const course_name = courseSelect.options[courseSelect.selectedIndex].text;
+        // college_id must be a numeric DB integer — text values like 'iit_bombay' are not valid FK IDs
+        const rawCollegeId = parseInt(collegeSelect.value, 10);
+        const college_id = isNaN(rawCollegeId) ? null : rawCollegeId;
+
+        payload = {
+          ...payload,
+          age: age || null,
+          gender: gender || null,
+          year: year || null,
+          course: course_name || null,
+          contact: contact || null,
+          college_id: college_id,
+          college_name: college_name || null,
+        };
+      } else {
+        const qualification = document.getElementById('qualification').value.trim();
+        const specialization = document.getElementById('specialization').value.trim();
+        const experience = document.getElementById('experience').value;
+        const contact = document.getElementById('counselor-contact').value.trim();
+
+        if (!qualification) {
+          document.getElementById('qual-err').textContent = 'Required.';
+          btn.textContent = 'Create Account →'; btn.disabled = false;
+          return;
+        }
+
+        payload = { ...payload, qualification: qualification || null, specialization: specialization || null, experience: experience || null, contact: contact || null };
+      }
+
+      const res = await apiFetch('/auth/register', {
+        method: 'POST',
+        body: JSON.stringify(payload)
+      });
+
+      saveAuth(res.token, res.user);
+      btn.textContent = '✓ Success! Redirecting…';
+      setTimeout(() => {
+        window.location.href = selectedRole === 'counselor' ? 'pages/counselor.html' : 'pages/dashboard.html';
+      }, 500);
+    } catch (err) {
+      document.getElementById('alert-box').innerHTML = `<div class="alert alert-error">⚠ ${err.message}</div>`;
+      btn.textContent = 'Create Account →'; btn.disabled = false;
+    }
+  });
+</script>
+<script>
+  const authPage = document.querySelector('.auth-page');
+  if (authPage) {
+    const authGlow = authPage.querySelector('.auth-glow-cursor');
+    authPage.addEventListener('mousemove', event => {
+      const rect = authPage.getBoundingClientRect();
+      const x = event.clientX - rect.left;
+      const y = event.clientY - rect.top;
+      authGlow.style.left = `${x}px`;
+      authGlow.style.top = `${y}px`;
+      authGlow.style.opacity = '1';
+      authGlow.style.transform = `translate(-50%, -50%) scale(1.08)`;
+    });
+    authPage.addEventListener('mouseleave', () => {
+      authGlow.style.opacity = '0';
+    });
+  }
+</script>
+</body>
+</html>

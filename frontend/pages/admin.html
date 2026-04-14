@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Control — MindBridge</title>
+    <link rel="stylesheet" href="../css/style.css">
+    <style>
+        .admin-nav { 
+            display: flex; gap: 10px; margin-bottom: 30px; border-bottom: 1px solid var(--border); padding-bottom: 2px;
+            overflow-x: auto;
+        }
+        .admin-nav-btn {
+            padding: 10px 20px; border: none; background: none; font-family: var(--font-view); font-weight: 500;
+            font-size: 0.92rem; color: var(--text-muted); cursor: pointer; transition: var(--t-fast);
+            position: relative; white-space: nowrap;
+        }
+        .admin-nav-btn:hover { color: var(--sage); }
+        .admin-nav-btn.active { color: var(--sage); font-weight: 600; }
+        .admin-nav-btn.active::after {
+            content: ''; position: absolute; bottom: -2px; left: 0; width: 100%; height: 3px;
+            background: var(--sage); border-radius: 99px;
+        }
+    </style>
+</head>
+<body>
+    <div class="app-shell">
+        <aside class="sidebar" id="app-sidebar"></aside>
+        
+        <div class="main-content">
+            <header class="topbar"></header>
+            
+            <main class="page-body">
+                <div class="page-header animate-in">
+                    <div>
+                        <h2 class="page-title">Admin Control</h2>
+                        <div class="section-sub">System-wide management and security monitor</div>
+                    </div>
+                    <div class="page-actions">
+                        <div class="date-display" id="topbar-date">Sat, 28 Mar</div>
+                    </div>
+                </div>
+
+                <div class="stats-strip animate-in delay-1">
+                    <div class="stat-tile c-sage">
+                        <div class="stat-icon-wrap">🎓</div>
+                        <div class="stat-value" id="s-students">—</div>
+                        <div class="stat-label">Students</div>
+                    </div>
+                    <div class="stat-tile c-sky">
+                        <div class="stat-icon-wrap">👩‍⚕️</div>
+                        <div class="stat-value" id="s-counselors">—</div>
+                        <div class="stat-label">Counselors</div>
+                    </div>
+                    <div class="stat-tile c-gold">
+                        <div class="stat-icon-wrap">📅</div>
+                        <div class="stat-value" id="s-appointments">—</div>
+                        <div class="stat-label">Appointments</div>
+                    </div>
+                    <div class="stat-tile c-rust">
+                        <div class="stat-icon-wrap">🚨</div>
+                        <div class="stat-value" id="s-highrisk">—</div>
+                        <div class="stat-label">High Risk</div>
+                    </div>
+                </div>
+
+                <div class="admin-nav animate-in delay-2">
+                    <button class="admin-nav-btn active" onclick="switchTab('students', this)">Student Roster</button>
+                    <button class="admin-nav-btn" onclick="switchTab('counselors', this)">Counselor Team</button>
+                    <button class="admin-nav-btn" onclick="switchTab('resources', this)">Resource Library</button>
+                    <button class="admin-nav-btn" onclick="switchTab('highrisk', this)">Security Alerts</button>
+                </div>
+
+                <div id="tab-content" class="animate-in delay-2">
+                    <div class="loading-wrap"><div class="spinner"></div></div>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <!-- Modals -->
+    <div class="modal-overlay" id="modal-counselor">
+        <div class="modal" style="max-width: 500px;">
+            <div class="modal-header">
+                <div class="modal-title">New Counselor</div>
+                <button class="modal-close" onclick="closeModal('modal-counselor')">✕</button>
+            </div>
+            <div class="modal-body">
+                <div class="grid-2">
+                    <div class="form-group"><label class="form-label">Full Name</label><input class="form-input" id="c-name" /></div>
+                    <div class="form-group"><label class="form-label">Email</label><input class="form-input" type="email" id="c-email" /></div>
+                </div>
+                <div class="grid-2">
+                    <div class="form-group"><label class="form-label">Password</label><input class="form-input" type="password" id="c-pass" /></div>
+                    <div class="form-group"><label class="form-label">Contact</label><input class="form-input" id="c-contact" /></div>
+                </div>
+                <div class="grid-2">
+                    <div class="form-group"><label class="form-label">Specialization</label><input class="form-input" id="c-spec" /></div>
+                    <div class="form-group"><label class="form-label">Qualification</label><input class="form-input" id="c-qual" /></div>
+                </div>
+                <div style="margin-top: 20px; display: flex; gap: 10px;">
+                    <button class="btn btn-primary btn-full" onclick="addCounselor()">Create Account</button>
+                    <button class="btn btn-ghost" onclick="closeModal('modal-counselor')">Cancel</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="modal-resource">
+        <div class="modal" style="max-width: 450px;">
+            <div class="modal-header">
+                <div class="modal-title">Add Resource</div>
+                <button class="modal-close" onclick="closeModal('modal-resource')">✕</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group"><label class="form-label">Title</label><input class="form-input" id="r-title" /></div>
+                <div class="form-group">
+                    <label class="form-label">Resource Type</label>
+                    <select class="form-input" id="r-type">
+                        <option>Article</option><option>Video</option><option>Worksheet</option><option>Support Line</option><option>Community</option>
+                    </select>
+                </div>
+                <div class="form-group"><label class="form-label">Description</label><textarea class="form-input" id="r-desc" rows="3"></textarea></div>
+                <div style="margin-top: 20px; display: flex; gap: 10px;">
+                    <button class="btn btn-primary btn-full" onclick="addResource()">Publish Resource</button>
+                    <button class="btn btn-ghost" onclick="closeModal('modal-resource')">Cancel</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="../js/api.js"></script>
+    <script>
+        const user = requireAuth(['admin']);
+        if (user) renderSidebar('admin');
+
+        async function loadStats() {
+            try {
+                const res = await apiFetch('/admin/stats');
+                const d = res.data;
+                document.getElementById('s-students').textContent = d.totalStudents || 0;
+                document.getElementById('s-counselors').textContent = d.totalCounselors || 0;
+                document.getElementById('s-appointments').textContent = d.totalAppointments || 0;
+                document.getElementById('s-highrisk').textContent = d.highRiskCount || 0;
+            } catch (err) { console.error(err); }
+        }
+
+        const tabs = {
+            students: async () => {
+                const res = await apiFetch('/students');
+                const list = res.data || [];
+                return `<div class="table-container"><table><thead><tr><th>Student</th><th>Course</th><th>Year</th><th style="text-align:right">Action</th></tr></thead><tbody>
+                    ${list.map(s => `<tr>
+                        <td><div class="cell-primary">${s.name}</div><div class="cell-sub">${s.email}</div></td>
+                        <td>${s.course || '—'}</td><td>${s.year || '—'}</td>
+                        <td style="text-align:right"><button class="btn btn-ghost btn-sm" onclick="removeStudent(${s.student_id})">Remove</button></td>
+                    </tr>`).join('')}
+                </tbody></table></div>`;
+            },
+            counselors: async () => {
+                const res = await apiFetch('/admin/counselors');
+                const list = res.data || [];
+                return `
+                    <div style="margin-bottom: 20px; text-align: right;"><button class="btn btn-primary btn-sm" onclick="openModal('modal-counselor')">+ New Counselor</button></div>
+                    <div class="table-container"><table><thead><tr><th>Counselor</th><th>Qualification</th><th>Specialization</th><th style="text-align:right">Action</th></tr></thead><tbody>
+                    ${list.map(c => `<tr>
+                        <td><div class="cell-primary">${c.name}</div><div class="cell-sub">${c.email}</div></td>
+                        <td>${c.qualification || '—'}</td><td>${c.specialization || '—'}</td>
+                        <td style="text-align:right"><button class="btn btn-ghost btn-sm" onclick="removeCounselor(${c.counselor_id})">Remove</button></td>
+                    </tr>`).join('')}
+                </tbody></table></div>`;
+            },
+            resources: async () => {
+                const res = await apiFetch('/resources');
+                const list = res.data || [];
+                return `
+                    <div style="margin-bottom: 20px; text-align: right;"><button class="btn btn-primary btn-sm" onclick="openModal('modal-resource')">+ Add Resource</button></div>
+                    <div class="table-container"><table><thead><tr><th>Title</th><th>Type</th><th style="text-align:right">Action</th></tr></thead><tbody>
+                    ${list.map(r => `<tr>
+                        <td><div class="cell-primary">${r.title}</div></td>
+                        <td><span class="badge badge-low">${r.type}</span></td>
+                        <td style="text-align:right"><button class="btn btn-ghost btn-sm" onclick="removeResource(${r.resource_id})">Delete</button></td>
+                    </tr>`).join('')}
+                </tbody></table></div>`;
+            },
+            highrisk: async () => {
+                const res = await apiFetch('/admin/high-risk');
+                const list = res.data || [];
+                if (!list.length) return `<div class="empty-state"><span class="empty-icon">✅</span><div class="empty-title">All clear</div><p>No high-risk students at this moment.</p></div>`;
+                return `<div class="alert alert-error" style="margin-bottom: 20px;">🚨 ${list.length} student(s) identified as High Risk.</div>
+                    <div class="table-container"><table><thead><tr><th>Student</th><th>Risk Level</th><th>Current Status</th><th style="text-align:right">Action</th></tr></thead><tbody>
+                    ${list.map(s => `<tr>
+                        <td><div class="cell-primary">${s.name}</div><div class="cell-sub">${s.email}</div></td>
+                        <td>${riskBadge(s.risk_level)}</td>
+                        <td><div class="cell-sub">${s.stress_level} Stress / ${s.anxiety_level} Anxiety</div></td>
+                        <td style="text-align:right"><a href="mailto:${s.email}" class="btn btn-primary btn-sm">Contact Student</a></td>
+                    </tr>`).join('')}
+                </tbody></table></div>`;
+            }
+        };
+
+        async function switchTab(tab, btn) {
+            document.querySelectorAll('.admin-nav-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            const content = document.getElementById('tab-content');
+            content.innerHTML = '<div class="loading-wrap"><div class="spinner"></div></div>';
+            try {
+                content.innerHTML = await tabs[tab]();
+            } catch (err) {
+                content.innerHTML = `<div class="alert alert-error">Failed to load content.</div>`;
+            }
+        }
+
+        function openModal(id) { document.getElementById(id).classList.add('open'); }
+        function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+
+        async function addCounselor() {
+            const payload = {
+                name: document.getElementById('c-name').value,
+                email: document.getElementById('c-email').value,
+                password: document.getElementById('c-pass').value,
+                contact_no: document.getElementById('c-contact').value,
+                qualification: document.getElementById('c-qual').value,
+                specialization: document.getElementById('c-spec').value
+            };
+            try {
+                await apiFetch('/admin/counselors', { method: 'POST', body: JSON.stringify(payload) });
+                showToast('Counselor added successfully', 'success');
+                closeModal('modal-counselor');
+                switchTab('counselors', document.querySelectorAll('.admin-nav-btn')[1]);
+                loadStats();
+            } catch (err) { showToast(err.message, 'error'); }
+        }
+
+        async function addResource() {
+            const payload = {
+                title: document.getElementById('r-title').value,
+                type: document.getElementById('r-type').value,
+                description: document.getElementById('r-desc').value
+            };
+            try {
+                await apiFetch('/resources', { method: 'POST', body: JSON.stringify(payload) });
+                showToast('Resource published', 'success');
+                closeModal('modal-resource');
+                switchTab('resources', document.querySelectorAll('.admin-nav-btn')[2]);
+                loadStats();
+            } catch (err) { showToast(err.message, 'error'); }
+        }
+
+        async function removeStudent(id) {
+            if (!confirm('Permanently remove this student?')) return;
+            try {
+                await apiFetch(`/students/${id}`, { method: 'DELETE' });
+                showToast('Student removed');
+                switchTab('students', document.querySelector('.admin-nav-btn.active'));
+                loadStats();
+            } catch (err) { showToast(err.message, 'error'); }
+        }
+
+        async function removeCounselor(id) {
+            if (!confirm('Remove this counselor?')) return;
+            try {
+                await apiFetch(`/admin/counselors/${id}`, { method: 'DELETE' });
+                showToast('Counselor removed');
+                switchTab('counselors', document.querySelector('.admin-nav-btn.active'));
+                loadStats();
+            } catch (err) { showToast(err.message, 'error'); }
+        }
+
+        async function removeResource(id) {
+            if (!confirm('Delete this resource?')) return;
+            try {
+                await apiFetch(`/resources/${id}`, { method: 'DELETE' });
+                showToast('Resource deleted');
+                switchTab('resources', document.querySelector('.admin-nav-btn.active'));
+                loadStats();
+            } catch (err) { showToast(err.message, 'error'); }
+        }
+
+        loadStats();
+        switchTab('students', document.querySelector('.admin-nav-btn.active'));
+    </script>
+</body>
+</html>
