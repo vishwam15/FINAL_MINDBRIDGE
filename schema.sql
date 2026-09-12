@@ -214,9 +214,12 @@ CREATE TABLE IF NOT EXISTS session_note (
 CREATE TABLE IF NOT EXISTS self_help_resource (
     resource_id     INT          AUTO_INCREMENT PRIMARY KEY,
     title           VARCHAR(150) NOT NULL,
-    -- FIX: type uses ENUM matching values used in assessmentController.js
-    type            ENUM('Article','Resource','Worksheet','Video') NOT NULL,
+    -- UPDATED: type now includes Photo, Exercise, Support Line, and Community
+    type            ENUM('Article','Resource','Worksheet','Video','Photo','Exercise','Support Line','Community') NOT NULL,
     description     TEXT,
+    link            VARCHAR(255),
+    thumbnail_url   VARCHAR(255),
+    platform        VARCHAR(50),
     created_at      TIMESTAMP    DEFAULT CURRENT_TIMESTAMP
 );
 

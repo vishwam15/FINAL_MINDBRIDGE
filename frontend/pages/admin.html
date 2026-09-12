@@ -117,8 +117,19 @@
                 <div class="form-group">
                     <label class="form-label">Resource Type</label>
                     <select class="form-input" id="r-type">
-                        <option>Article</option><option>Video</option><option>Worksheet</option><option>Support Line</option><option>Community</option>
+                        <option>Article</option>
+                        <option>Video</option>
+                        <option>Worksheet</option>
+                        <option>Photo</option>
+                        <option>Exercise</option>
+                        <option>Support Line</option>
+                        <option>Community</option>
                     </select>
+                </div>
+                <div class="form-group"><label class="form-label">Resource Link / URL</label><input class="form-input" id="r-link" placeholder="https://..." /></div>
+                <div class="grid-2">
+                    <div class="form-group"><label class="form-label">Thumbnail URL (Optional)</label><input class="form-input" id="r-thumb" placeholder="https://image-url..." /></div>
+                    <div class="form-group"><label class="form-label">Platform (Optional)</label><input class="form-input" id="r-platform" placeholder="YouTube, Spotify, etc." /></div>
                 </div>
                 <div class="form-group"><label class="form-label">Description</label><textarea class="form-input" id="r-desc" rows="3"></textarea></div>
                 <div style="margin-top: 20px; display: flex; gap: 10px;">
@@ -177,7 +188,15 @@
                     <div style="margin-bottom: 20px; text-align: right;"><button class="btn btn-primary btn-sm" onclick="openModal('modal-resource')">+ Add Resource</button></div>
                     <div class="table-container"><table><thead><tr><th>Title</th><th>Type</th><th style="text-align:right">Action</th></tr></thead><tbody>
                     ${list.map(r => `<tr>
-                        <td><div class="cell-primary">${r.title}</div></td>
+                        <td>
+                            <div style="display:flex; gap:12px; align-items:center;">
+                                ${r.thumbnail_url ? `<img src="${r.thumbnail_url}" style="width:40px; height:40px; border-radius:4px; object-fit:cover;" onerror="this.src='../assets/placeholder.png'"/>` : '<div style="width:40px; height:40px; border-radius:4px; background:var(--bg-muted); display:flex; align-items:center; justify-content:center;">📄</div>'}
+                                <div>
+                                    <div class="cell-primary">${r.title}</div>
+                                    ${r.link ? `<div class="cell-sub"><a href="${r.link}" target="_blank" style="color:var(--sage); text-decoration:none;">🔗 ${r.platform || 'View Content'}</a></div>` : ''}
+                                </div>
+                            </div>
+                        </td>
                         <td><span class="badge badge-low">${r.type}</span></td>
                         <td style="text-align:right"><button class="btn btn-ghost btn-sm" onclick="removeResource(${r.resource_id})">Delete</button></td>
                     </tr>`).join('')}
@@ -233,18 +252,37 @@
         }
 
         async function addResource() {
-            const payload = {
-                title: document.getElementById('r-title').value,
-                type: document.getElementById('r-type').value,
-                description: document.getElementById('r-desc').value
-            };
+            const title = document.getElementById('r-title').value;
+            const type = document.getElementById('r-type').value;
+            const link = document.getElementById('r-link').value;
+            const description = document.getElementById('r-desc').value;
+            const thumbnail_url = document.getElementById('r-thumb').value;
+            const platform = document.getElementById('r-platform').value;
+
+            if (!title) return showToast('Resource title is required', 'error');
+            if (!type) return showToast('Please select a resource type', 'error');
+            if (!link) return showToast('Resource link URL is required', 'error');
+            
+            const payload = { title, type, description, link, thumbnail_url, platform };
+
             try {
                 await apiFetch('/resources', { method: 'POST', body: JSON.stringify(payload) });
-                showToast('Resource published', 'success');
+                showToast('Resource published successfully', 'success');
                 closeModal('modal-resource');
+                
+                // Clear form
+                document.getElementById('r-title').value = '';
+                document.getElementById('r-link').value = '';
+                document.getElementById('r-desc').value = '';
+                document.getElementById('r-thumb').value = '';
+                document.getElementById('r-platform').value = '';
+
                 switchTab('resources', document.querySelectorAll('.admin-nav-btn')[2]);
                 loadStats();
-            } catch (err) { showToast(err.message, 'error'); }
+            } catch (err) { 
+                console.error('Add Resource Error:', err);
+                showToast(err.message || 'Failed to publish resource', 'error'); 
+            }
         }
 
         async function removeStudent(id) {

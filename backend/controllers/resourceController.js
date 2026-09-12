@@ -15,33 +15,57 @@ const getAllResources = async (req, res) => {
 // POST /api/resources - Add a resource (admin)
 const addResource = async (req, res) => {
     try {
-        const { title, type, description } = req.body;
+        const { title, type, description, link, thumbnail_url, platform } = req.body;
+        
+        console.log('--- Add Resource Request ---');
+        console.log('Payload:', { title, type, description, link, thumbnail_url, platform });
+
         if (!title || !type) {
+            console.warn('Validation failed: Title and type are required.');
             return res.status(400).json({ success: false, message: 'Title and type are required.' });
         }
+        
+        // Auto-detect platform if not provided
+        let detectedPlatform = platform;
+        if (!detectedPlatform && link) {
+            if (link.includes('youtube.com') || link.includes('youtu.be')) detectedPlatform = 'YouTube';
+            else if (link.includes('spotify.com')) detectedPlatform = 'Spotify';
+            else if (link.includes('medium.com')) detectedPlatform = 'Medium';
+            else if (link.includes('drive.google.com')) detectedPlatform = 'Google Drive';
+        }
+
         const [result] = await db.query(
-            'INSERT INTO self_help_resource (title, type, description) VALUES (?, ?, ?)',
-            [title, type, description || '']
+            'INSERT INTO self_help_resource (title, type, description, link, thumbnail_url, platform) VALUES (?, ?, ?, ?, ?, ?)',
+            [title, type, description || '', link || null, thumbnail_url || null, detectedPlatform || null]
         );
+        
+        console.log('Resource added successfully. ID:', result.insertId);
         res.status(201).json({ success: true, message: 'Resource added.', data: { resource_id: result.insertId } });
     } catch (err) {
-        console.error(err);
-        res.status(500).json({ success: false, message: 'Failed to add resource.' });
+        console.error('Error adding resource:', err);
+        res.status(500).json({ success: false, message: `Failed to add resource: ${err.message}` });
     }
 };
 
 // PUT /api/resources/:id - Update a resource (admin)
 const updateResource = async (req, res) => {
     try {
-        const { title, type, description } = req.body;
+        const { title, type, description, link, thumbnail_url, platform } = req.body;
+        
+        console.log('--- Update Resource Request ---');
+        console.log('ID:', req.params.id);
+        console.log('Payload:', { title, type, description, link, thumbnail_url, platform });
+
         await db.query(
-            'UPDATE self_help_resource SET title=?, type=?, description=? WHERE resource_id=?',
-            [title, type, description, req.params.id]
+            'UPDATE self_help_resource SET title=?, type=?, description=?, link=?, thumbnail_url=?, platform=? WHERE resource_id=?',
+            [title || '', type || '', description || '', link || null, thumbnail_url || null, platform || null, req.params.id]
         );
+        
+        console.log('Resource updated successfully.');
         res.json({ success: true, message: 'Resource updated.' });
     } catch (err) {
-        console.error(err);
-        res.status(500).json({ success: false, message: 'Failed to update resource.' });
+        console.error('Error updating resource:', err);
+        res.status(500).json({ success: false, message: `Failed to update resource: ${err.message}` });
     }
 };
 

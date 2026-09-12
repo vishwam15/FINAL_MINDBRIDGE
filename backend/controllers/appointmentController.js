@@ -138,10 +138,14 @@ const bookAppointment = async (req, res) => {
                 );
 
                 // Create notification for counselor
+                const dateObj = new Date(date);
+                const formattedDate = dateObj.toLocaleDateString('en-IN', { day: 'numeric', month: 'short' });
+                const formattedTime = time.substring(0, 5);
+
                 createNotification(
                     counselor_id,
                     'counselor',
-                    `New appointment request from ${students[0].name} for ${date} at ${time}.`,
+                    `New request: ${students[0].name} for ${formattedDate} at ${formattedTime}.`,
                     'appointment'
                 );
             }
@@ -259,10 +263,14 @@ const updateAppointmentStatus = async (req, res) => {
                 // Create notification for student
                 if (status === 'confirmed' || status === 'cancelled') {
                     const appt = appointments[0];
+                    const dateObj = new Date(appt.date);
+                    const formattedDate = dateObj.toLocaleDateString('en-IN', { day: 'numeric', month: 'short' });
+                    const formattedTime = appt.time.substring(0, 5); // Take HH:MM
+                    
                     createNotification(
                         appt.student_id,
                         'student',
-                        `Your appointment on ${appt.date} at ${appt.time} has been ${status}.`,
+                        `Your session on ${formattedDate} at ${formattedTime} has been ${status}.`,
                         'appointment'
                     );
                 }
